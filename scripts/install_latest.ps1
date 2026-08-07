@@ -1,4 +1,4 @@
-param([string]$Repo = "JDollan/TinyRoguesTracker")
+param([string]$Repo = "JordanRooneyData/tiny-rogues-tracker")
 $ErrorActionPreference = "Stop"
 $installRoot = Join-Path $env:LOCALAPPDATA "TinyRoguesTracker"
 New-Item -ItemType Directory -Force -Path $installRoot | Out-Null

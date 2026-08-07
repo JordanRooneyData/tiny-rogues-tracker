@@ -26,8 +26,8 @@ def save_with_runs(runs, streaks_len=36):
     return {"TimeOfSave": "test", "RunRecords": runs, "CinderStreakHistory": [{} for _ in range(streaks_len)]}
 
 
-def test_version_is_040():
-    assert __version__ == "0.4.0"
+def test_version_is_041():
+    assert __version__ == "0.4.1"
 
 
 def test_blank_save_filter_and_single_nonblank_auto_selection(tmp_path):
@@ -80,9 +80,9 @@ def test_sort_cycle_numeric_and_restore_default():
     rows = [{"name": "b", "value": 2, "_order": 0}, {"name": "a", "value": 10, "_order": 1}]
     state = SortState()
     rows1 = state.click(rows, "value")
-    assert [r["value"] for r in rows1] == [2, 10]
+    assert [r["value"] for r in rows1] == [10, 2]
     rows2 = state.click(rows, "value")
-    assert [r["value"] for r in rows2] == [10, 2]
+    assert [r["value"] for r in rows2] == [2, 10]
     rows3 = state.click(rows, "value")
     assert [r["_order"] for r in rows3] == [0, 1]
 

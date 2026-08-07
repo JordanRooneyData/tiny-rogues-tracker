@@ -4,6 +4,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
+from functools import cmp_to_key
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -16,6 +17,10 @@ PRIMAL_DEATH_ID = 19
 ROUTE_FINAL_IDS = {EDEN_ID: "Eden", AMON_ID: "Amon", PRIMAL_DEATH_ID: "Primal Death"}
 ROUTE_DRAGON_IDS = {20, 21, 22}
 VERSION = __version__
+
+VIEW_CINDER_HIGHSCORES = "Cinder Highscores"
+VIEW_KILL_COUNTS = "Kill Counts"
+VIEW_CLASS_BREAKDOWN = "Class Breakdown"
 
 @dataclass(frozen=True)
 class TopFloor:
@@ -49,6 +54,10 @@ class CinderSelection:
             return f"C{self.low}"
         return f"C{self.low}–C{self.high}"
 
+    @property
+    def display_text(self) -> str:
+        return f"Cinder filter: {self.label}"
+
     def contains(self, cinder: int) -> bool:
         if self.low is None or self.high is None:
             return True
@@ -63,6 +72,53 @@ def cinder_selection_from_click(current: CinderSelection, clicked: int | str, sh
         return CinderSelection.single(value), value
     low_anchor = 1 if anchor is None or current.low is None else anchor
     return CinderSelection.range(low_anchor, value), low_anchor
+
+@dataclass
+class SfmTableState:
+    """Pure state model for Screenshot Friendly Mode's three-step workflow."""
+    state: str = "normal"
+    selected_rows: set[int] = field(default_factory=set)
+    selected_cols: set[int] = field(default_factory=set)
+    message: str = "SFM inactive. Press SFM to choose rows and columns for a compact screenshot table."
+
+    def press(self) -> "SfmTableState":
+        if self.state == "normal":
+            self.state = "selection"
+            self.message = "SFM SELECTION HAS BEEN ACTIVATED. Click row and column headers; selected intersections will be highlighted."
+        elif self.state == "selection":
+            if not self.selected_rows or not self.selected_cols:
+                self.message = "SFM SELECTION HAS BEEN ACTIVATED. Select at least one row and one column to create a compact table."
+            else:
+                self.state = "compact"
+                self.message = "Compact screenshot mode is active. Press SFM again to restore the full table."
+        else:
+            self.state = "normal"
+            self.selected_rows.clear()
+            self.selected_cols.clear()
+            self.message = "SFM inactive. Press SFM to choose rows and columns for a compact screenshot table."
+        return self
+
+    def toggle_row(self, row: int) -> None:
+        if self.state != "selection":
+            return
+        self.selected_rows.symmetric_difference_update({row})
+
+    def toggle_col(self, col: int) -> None:
+        if self.state != "selection":
+            return
+        self.selected_cols.symmetric_difference_update({col})
+
+    def highlighted_cells(self) -> set[tuple[int, int]]:
+        if self.state != "selection":
+            return set()
+        return {(r, c) for r in self.selected_rows for c in self.selected_cols}
+
+    def compact_shape(self, rows: list[Any], cols: list[Any], values: list[list[Any]]) -> tuple[list[Any], list[Any], list[list[Any]]] | None:
+        if self.state != "compact" or not self.selected_rows or not self.selected_cols:
+            return None
+        rs = sorted(self.selected_rows)
+        cs = sorted(self.selected_cols)
+        return [rows[r] for r in rs], [cols[c] for c in cs], [[values[r][c] for c in cs] for r in rs]
 
 @dataclass
 class CharacterRecord:
@@ -82,17 +138,19 @@ class CharacterRecord:
     @property
     def runs_display(self) -> str:
         if self.observed_runs:
-            return str(self.observed_runs)
+            return str(max(self.observed_runs, self.minimum_runs)) if self.minimum_runs > self.observed_runs else str(self.observed_runs)
         if self.minimum_runs:
             return "≥1"
         return "0"
 
     @property
     def runs_tooltip(self) -> str:
+        if self.minimum_runs > self.observed_runs:
+            return "Retained RunRecords plus at least one historical Death clear from CinderStreakHistory; exact historical run count may be higher."
         if self.observed_runs:
             return f"Exact retained RunRecords count: {self.observed_runs}."
         if self.minimum_runs:
-            return "Historical clear exists in CinderStreakHistory, but detailed retained RunRecords do not contain the run; exact run count is unknown."
+            return "Historical Death clear exists in CinderStreakHistory, but detailed retained RunRecords do not contain the run; exact run count is unknown."
         return "No retained runs or historical clears found in this save."
 
 @dataclass
@@ -105,6 +163,7 @@ class CompletionRow:
     eden_clears: int = 0
     amon_clears: int = 0
     primal_death_clears: int = 0
+    inferred_historical_death_runs: int = 0
 
     @property
     def death_rate(self) -> float | None:
@@ -174,7 +233,10 @@ class TrackerModel:
     def completion_rows(self, selection: CinderSelection) -> CompletionTable:
         rows = [CompletionRow(r.character, r.character_id) for r in self.records]
         by_id = {r.character_id: r for r in rows}
+        recorded_death_by_class_cinder: set[tuple[int, int]] = set()
         for run in self.runs:
+            if run.is_death:
+                recorded_death_by_class_cinder.add((run.character_id, run.cinder))
             if not selection.contains(run.cinder):
                 continue
             row = by_id.setdefault(run.character_id, CompletionRow(character_name(self.ids, run.character_id), run.character_id))
@@ -189,10 +251,18 @@ class TrackerModel:
                     row.amon_clears += 1
                 elif run.route_boss == "Primal Death":
                     row.primal_death_clears += 1
+        # Merge only the minimum historical Death-clear evidence absent from retained RunRecords.
+        for cid, cinder in historical_death_cinders(self.save):
+            if not selection.contains(cinder) or (cid, cinder) in recorded_death_by_class_cinder:
+                continue
+            row = by_id.setdefault(cid, CompletionRow(character_name(self.ids, cid), cid))
+            row.cx_runs += 1
+            row.death_clears += 1
+            row.inferred_historical_death_runs += 1
         return CompletionTable(selection.label, rows)
 
     def character_record_highlights(self) -> set[tuple[str, str]]:
-        columns = ["best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "observed_runs", "top_floor_rank"]
+        columns = ["best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "top_floor_rank"]
         highlights: set[tuple[str, str]] = set()
         for col in columns:
             values = [getattr(r, col) for r in self.records]
@@ -247,31 +317,55 @@ class TrackerModel:
         return MatrixModel(name, milestones, cinders, cells)
 
 class SortState:
+    """Stable table sorting: descending -> ascending -> default."""
     def __init__(self) -> None:
         self.column: str | None = None
-        self.direction = 0
+        self.direction = 0  # 0 default, 1 descending, 2 ascending
+
+    @property
+    def indicator(self) -> str:
+        return "" if self.direction == 0 else ("▼" if self.direction == 1 else "▲")
 
     def click(self, rows: list[dict[str, Any]], column: str) -> list[dict[str, Any]]:
         if self.column != column:
             self.column = column
             self.direction = 1
         else:
-            self.direction = (self.direction + 1) % 3
-        if self.direction == 0:
-            return sorted(rows, key=lambda r: r.get("_order", 0))
-        reverse = self.direction == 2
-        ordered = sorted(enumerate(rows), key=lambda ir: (sort_key(ir[1].get(column)), ir[0]), reverse=reverse)
-        return [r for _, r in ordered]
+            self.direction = {1: 2, 2: 0, 0: 1}[self.direction]
+        return self.apply(rows)
 
-def sort_key(v: Any) -> Any:
+    def apply(self, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if self.direction == 0 or self.column is None:
+            return sorted(rows, key=lambda r: r.get("_order", 0))
+        reverse_primary = self.direction == 1
+        col = self.column
+        def cmp(a: dict[str, Any], b: dict[str, Any]) -> int:
+            ak, bk = sort_key(a.get(col)), sort_key(b.get(col))
+            if ak < bk:
+                primary = -1
+            elif ak > bk:
+                primary = 1
+            else:
+                primary = 0
+            if reverse_primary:
+                primary = -primary
+            if primary:
+                return primary
+            return (a.get("_order", 0) > b.get("_order", 0)) - (a.get("_order", 0) < b.get("_order", 0))
+        return sorted(rows, key=cmp_to_key(cmp))
+
+def sort_key(v: Any) -> tuple[int, Any]:
     if v in (None, "—"):
-        return -1
+        return (0, -1)
     if isinstance(v, (int, float)):
-        return v
-    try:
-        return float(str(v).strip("%≥+"))
-    except Exception:
-        return str(v).lower()
+        return (1, v)
+    text = str(v).strip().replace("≥", "").replace("+", "")
+    if text.endswith("%"):
+        text = text[:-1]
+    m = re.match(r"^-?\d+(?:\.\d+)?", text)
+    if m:
+        return (1, float(m.group(0)))
+    return (2, text.lower())
 
 def load_ids(path: str | Path) -> dict[str, Any]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -339,7 +433,6 @@ def choose_default_save(paths: Iterable[Path], ids: dict[str, Any] | None = None
             valid.append(Path(p))
     if not valid:
         return None
-    # newest per slot, then newest overall as default
     valid.sort(key=lambda p: (slot_key(p), p.stat().st_mtime), reverse=True)
     return max(valid, key=lambda p: p.stat().st_mtime)
 
@@ -371,6 +464,15 @@ def discover_save_files() -> list[Path]:
             files.extend(sorted(d.glob("Public_Slot*_Save*.json")))
     return files
 
+def historical_death_cinders(save: dict[str, Any]) -> list[tuple[int, int]]:
+    out: list[tuple[int, int]] = []
+    for cid, st in enumerate(save.get("CinderStreakHistory", [])):
+        if not isinstance(st, dict) or st.get("deathKills", 0) <= 0:
+            continue
+        cinder = int(st.get("highestUsedCinderThisRun", 0))
+        out.append((cid, cinder))
+    return out
+
 def analyze_save(save: dict[str, Any], ids: dict[str, Any]) -> TrackerModel:
     runs = [parse_run(r) for r in save.get("RunRecords", []) if isinstance(r, dict) and "PlayedClass" in r]
     cids = all_character_ids(ids, save)
@@ -379,12 +481,12 @@ def analyze_save(save: dict[str, Any], ids: dict[str, Any]) -> TrackerModel:
     for cid in cids:
         name = character_name(ids, cid)
         rec = CharacterRecord(cid, name)
-        rec.sources["runs"] = "RunRecords observed detailed run history"
+        rec.sources["runs"] = "Recorded Runs are detailed retained RunRecords; CinderStreakHistory may add minimum historical Death clears."
         class_runs = [r for r in runs if r.character_id == cid]
         rec.observed_runs = len(class_runs)
         for run in class_runs:
-            rec.top_floor_rank = max(rec.top_floor_rank, run.top_floor.rank)
-            if rec.top_floor_rank == run.top_floor.rank:
+            if run.top_floor.rank > rec.top_floor_rank:
+                rec.top_floor_rank = run.top_floor.rank
                 rec.top_floor_label = run.top_floor.label
             if run.is_death:
                 rec.best_death = max_optional(rec.best_death, run.cinder)
@@ -400,7 +502,7 @@ def analyze_save(save: dict[str, Any], ids: dict[str, Any]) -> TrackerModel:
             st = streaks[cid]
             if st.get("deathKills", 0) > 0:
                 rec.best_death = max_optional(rec.best_death, int(st.get("highestUsedCinderThisRun", 0)))
-                rec.minimum_runs = max(rec.minimum_runs, 1)
+                rec.minimum_runs = max(rec.minimum_runs, rec.observed_runs + (0 if any(r.is_death and r.cinder == int(st.get("highestUsedCinderThisRun", 0)) for r in class_runs) else 1))
                 rec.sources["best_death"] = "CinderStreakHistory historical Death clear plus retained RunRecords when present"
         if rec.observed_runs:
             rec.minimum_runs = max(rec.minimum_runs, rec.observed_runs)
@@ -436,8 +538,9 @@ def export_csv(model: TrackerModel, path: str | Path, selection: CinderSelection
     selection = selection or CinderSelection.all()
     table = model.completion_rows(selection)
     with Path(path).open("w", encoding="utf-8", newline="") as f:
-        f.write("view,character_id,character,death,win_plus,eden,amon,primal_death,runs,top_floor\n")
+        f.write("view,character_id,character,death,win_plus,eden,amon,primal_death,top_floor_beaten\n")
         for r in model.records:
-            f.write(f"records,{r.character_id},\"{r.character}\",{format_cinder(r.best_death)},{format_cinder(r.best_win_plus)},{format_cinder(r.best_eden)},{format_cinder(r.best_amon)},{format_cinder(r.best_primal_death)},{r.runs_display},{r.top_floor_label}\n")
+            f.write(f"cinder_highscores,{r.character_id},\"{r.character}\",{format_cinder(r.best_death)},{format_cinder(r.best_win_plus)},{format_cinder(r.best_eden)},{format_cinder(r.best_amon)},{format_cinder(r.best_primal_death)},{r.top_floor_label}\n")
+        f.write(f"view,filter,character_id,character,runs,death,death_rate,win_plus,win_plus_rate,eden,amon,primal_death\n")
         for r in table.rows:
-            f.write(f"{table.label},{r.character_id},\"{r.character}\",{r.death_clears},{r.win_plus_clears},{r.eden_clears},{r.amon_clears},{r.primal_death_clears},{r.cx_runs},\n")
+            f.write(f"kill_counts,{table.label},{r.character_id},\"{r.character}\",{r.cx_runs},{r.death_clears},{format_rate(r.death_rate)},{r.win_plus_clears},{format_rate(r.win_plus_rate)},{r.eden_clears},{r.amon_clears},{r.primal_death_clears}\n")
