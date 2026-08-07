@@ -1,5 +1,8 @@
 name: Windows build and release
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ master, main ]

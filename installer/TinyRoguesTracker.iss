@@ -4,7 +4,7 @@
 #define MyAppExeName "TinyRoguesTracker-v0.4.0.exe"
 
 [Setup]
-AppId={{B412CE11-FE99-4F12-B724-TINYROGUES040}}
+AppId={{B412CE11-FE99-4F12-B724-040040040040}}
 AppName={#MyAppName}
 AppVersion=0.4.0
 AppPublisher={#MyAppPublisher}

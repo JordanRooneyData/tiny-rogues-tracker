@@ -4,9 +4,21 @@ import subprocess
 import time
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SAMPLE_SAVE = ROOT / "fixtures" / "sample_save.json"
 EXE = ROOT / "build" / "TinyRoguesTracker-linux"
+
+
+pytestmark = pytest.mark.skipif(
+    not EXE.exists(),
+    reason=(
+        "Legacy C++ console integration tests require the prebuilt "
+        "build/TinyRoguesTracker-linux binary; v0.4.0 Windows CI builds and "
+        "tests the PySide6 tracker package instead."
+    ),
+)
 
 
 def run_tracker(*extra, save=SAMPLE_SAVE, out=None, csv=None, character="21"):
