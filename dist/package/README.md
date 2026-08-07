@@ -7,62 +7,104 @@ Read-only Windows console tracker for Tiny Rogues save files.
 - `TinyRoguesTracker.exe` — standalone Windows x64 console executable.
 - `ids.json` — permanent ID mapping file used by the tracker.
 - `README.md` — this file.
-- `report.txt` — generated report from the supplied save.
+- `report.txt` — generated sample plain-text report.
+- `report.csv` — CSV export of View 1 and View 2.
 
 ## Golden rule
 
-The tracker is read-only. It opens the save file for reading, generates a report, and never writes back to the save.
+The tracker is strictly read-only. It opens the save file for reading, generates reports, and never writes back to the Tiny Rogues save folder.
 
 ## How to use on Windows
 
 Simplest:
 
-1. Put `TinyRoguesTracker.exe` and `ids.json` in the same folder.
+1. Put `TinyRoguesTracker.exe`, `ids.json`, and this `README.md` in the same folder.
 2. Double-click `TinyRoguesTracker.exe`.
-3. It checks the normal Tiny Rogues Unity save folder for the current Windows user:
-   `C:\Users\<you>\AppData\LocalLow\RubyDev\Tiny Rogues`
-4. It also scans each profile under `C:\Users\*` for:
-   `AppData\LocalLow\RubyDev\Tiny Rogues`
-5. If exactly one save location is found, it uses it automatically. If multiple saves/locations are found, it asks you to pick one.
-   - Real Tiny Rogues saves can have large early sections before `RunRecords`; this build validates the whole JSON file instead of only checking the first few KB.
-6. It prints a clean console table and writes `report.txt` beside the executable.
+3. It scans the normal Unity save folders:
+   - `C:\Users\<you>\AppData\LocalLow\RubyDev\Tiny Rogues`
+   - every `C:\Users\*\AppData\LocalLow\RubyDev\Tiny Rogues` profile
+4. It parses candidate save files before presenting them.
+5. Blank parses are ignored when they have empty `RunRecords` and no meaningful `CinderStreakHistory`.
+6. If exactly one non-blank save exists, it is selected automatically. If multiple non-blank saves exist, a concise picker shows save time and run count.
+7. The mode picker appears. Choose:
+   - `1` best records by character
+   - `2` Cinder 16 clear counts
+   - `3` character floor × cinder matrix
+8. The app only asks for a character after you choose mode 3.
+9. `B` goes back, `M` returns to the main mode picker, and `Q` exits from interactive screens.
+10. It writes `report.txt` and `report.csv` beside the executable.
 
 Manual path:
 
 ```powershell
-.\TinyRoguesTracker.exe --save "C:\Users\jorda\AppData\LocalLow\RubyDev\Tiny Rogues\Public_Slot1_Save1.json" --ids .\ids.json --report report.txt
+.\TinyRoguesTracker.exe --save "C:\Users\jorda\AppData\LocalLow\RubyDev\Tiny Rogues\Public_Slot1_Save1.json" --ids .\ids.json --report report.txt --csv report.csv
 ```
 
-## Current v2 behaviour
+For scripted/non-interactive use:
 
-The tool reports the highest completed cinder value per character for:
+```powershell
+.\TinyRoguesTracker.exe --save "C:\path\to\Public_Slot1_Save1.json" --ids .\ids.json --report report.txt --csv report.csv --character 21 --no-pause
+```
 
-- `Death` — from `CinderStreakHistory[].highestUsedCinderThisRun`, backed by `deathKills`.
-- `Heaven` — inferred from observed post-Death boss pair `[21,23]`; final/completion boss ID `23` is labelled `Eden`.
-- `Hell` — inferred from observed post-Death boss pair `[22,24]`; final/completion boss ID `24` is labelled `Amon`.
-- `Law` / Shadow Planes — inferred from observed post-Death boss pair `[20,19]`; final/completion boss ID `19` is labelled `Primal Death`.
+## What it shows
 
-It also extracts and preserves mapping sections for:
+### View 1 — Best records by character
 
-- Character/class IDs
-- Boss IDs
-- Cinder modifier IDs
-- Gifts
-- Objectives
-- Teleports
-- Meta perks
+Every character is listed, including characters with zero runs. Columns:
+
+- Best Death-clear cinder
+- Best Win+ cinder
+- Best Eden cinder
+- Best Amon cinder
+- Best PrimalDeath cinder
+- Total recorded runs from `RunRecords`
+- Best normalized in-game floor reached (`FloorReached + 1`)
+
+`—` means no qualifying clear was found. A real Cinder 0 clear displays as `0`.
+
+### View 2 — Cinder 16 clear counts by character
+
+Every character is listed. Columns count qualifying Cinder 16 runs, not boolean flags:
+
+- Death C16 clears
+- Win+ C16 clears
+- Eden C16 clears
+- Amon C16 clears
+- PrimalDeath C16 clears
+
+### View 3 — Character floor × cinder matrix
+
+One selected character is displayed as a terminal-outcome matrix:
+
+- Columns: cinder `0` through `16`
+- Rows: terminal outcome
+- Normal unsuccessful runs use displayed floor `FloorReached + 1`
+- Any run containing Eden, Amon, or PrimalDeath uses the terminal `Win+` row instead of also appearing as a normal floor outcome
+
+The matrix is mutually exclusive: one run goes into one outcome cell only.
+
+## Completion rules
+
+Boss kills are the source of truth:
+
+- Death clear: `bossesKilled` contains Death boss ID `18`.
+- Win+: `bossesKilled` contains Eden, Amon, or PrimalDeath.
+- Heaven clear: contains Eden boss ID `23`.
+- Hell clear: contains Amon boss ID `24`.
+- Law clear: contains PrimalDeath boss ID `19`.
+- Reaching Bahamut (`21`), Tiamat (`20`), Geryon (`22`), or their/final-boss floor is **not** a route clear unless the final route boss was killed.
+- `FloorReached` is zero-based in the save, so displayed floor is `FloorReached + 1`.
+
+## Data reconciliation
+
+- `RunRecords` are preferred for per-run counts and route-specific outcomes.
+- `CinderStreakHistory` is used only to supplement historical Death-best cinder values when `deathKills` proves clears that may be absent from `RunRecords`.
+- `CinderStreakHistory` is not counted as extra runs, which avoids double-counting.
+- Unknown future save fields are preserved by the save file and ignored safely by the tracker.
 
 ## Mapping note
 
-Google Drive auth was restored and the `gpt sources` archive was downloaded. `global-metadata.dat` yielded enum names for player classes, boss IDs, cinder modifiers, gifts, and objectives.
-
-The supplied `GameAssembly.dll` inside the RAR extracted short by 207,360 bytes, so this build does **not** trust binary disassembly. `ids.json` is still permanent and upgradeable; unresolved entries are kept as safe fallback labels like `Boss ID 45`.
-
-Route final boss labels are based on the save's observed post-Death boss pairs plus public route naming:
-
-- High Heavens / Heaven → Eden
-- Burning Hells / Hell → Amon
-- Shadow Planes / Law → Primal Death
+`ids.json` was enriched from the supplied Tiny Rogues metadata and save correlations. Death, Eden, Amon, PrimalDeath, Bahamut, Tiamat, and Geryon are explicitly mapped with confidence/source notes. The decoded character enum currently ends at `Santa` (`33`). Character IDs `34` and `35` are kept as unresolved fallbacks because the supplied metadata did not contain names after `Santa`.
 
 ## Build from source
 
@@ -70,22 +112,13 @@ Linux host with MinGW:
 
 ```bash
 make all
-make test
+python3 -m pytest -q
 ```
 
 Outputs:
 
 - Linux test binary: `build/TinyRoguesTracker-linux`
 - Windows executable: `dist/TinyRoguesTracker.exe`
+- Windows bundle: `dist/TinyRoguesTracker-v2-windows.zip`
 
-## Files
-
-```text
-src/main.cpp                 C++17 read-only tracker
-ids.json                     mapping file
-fixtures/sample_save.json    minimal non-private test fixture
-tests/test_tracker_contract.py
-Makefile
-```
-
-Private supplied saves, logs, game binaries, and Google Drive source archives are not part of the public project bundle.
+Private supplied saves, logs, game binaries, and source archives are not part of the public project bundle.

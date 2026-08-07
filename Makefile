@@ -2,7 +2,7 @@ CXX ?= g++
 WIN_CXX ?= x86_64-w64-mingw32-g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra
 
-.PHONY: all linux windows test clean
+.PHONY: all linux windows report test package clean
 
 all: linux windows
 
@@ -17,10 +17,16 @@ windows: build
 	test -f dist/TinyRoguesTracker.exe
 
 report: linux
-	./build/TinyRoguesTracker-linux --save fixtures/private/Public_Slot1_Save1.json --ids ids.json --report report.txt --no-pause
+	./build/TinyRoguesTracker-linux --save fixtures/sample_save.json --ids ids.json --report report.txt --csv report.csv --character 21 --no-pause
 
 test: linux report
 	python3 -m pytest -q
 
+package: all report
+	rm -rf dist/package dist/TinyRoguesTracker-v2-windows.zip
+	mkdir -p dist/package
+	cp dist/TinyRoguesTracker.exe ids.json README.md report.txt report.csv dist/package/
+	python3 scripts/package_windows.py
+
 clean:
-	rm -rf build dist report.txt
+	rm -rf build dist report.txt report.csv
