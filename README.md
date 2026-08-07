@@ -1,31 +1,15 @@
-# Tiny Rogues Tracker v0.4.2
+# Tiny Rogues Tracker v0.4.3
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.2 includes
+## What v0.4.3 includes
 
-- Focused GUI/functionality correction release on top of the previous desktop GUI release.
-- Renamed views:
-  - **Cinder Highscores** — per-class high cinder clears and **Top Floor Beaten**.
-  - **Kill Counts** — filter-aware run/kill/rate table.
-  - **Class Breakdown** — per-class cinder/progression matrix.
-- Read-only save loading; the app never writes to the Tiny Rogues save directory.
-- Automatic save discovery at `C:\Users\*\AppData\LocalLow\RubyDev\Tiny Rogues`.
-- Blank/new-save filtering and newest valid save defaulting.
-- Boss-kill based clear rules:
-  - Death clear = boss ID `18` killed.
-  - Win+ = Eden `23`, Amon `24`, or Primal Death `19` killed.
-  - Reaching a final floor without the final boss kill is not a clear.
-- **Top Floor Beaten** is calculated from defeated bosses, not deepest floor entered:
-  - `10 (Death)` only when Death is killed.
-  - `11 (Dragon)` only when a route dragon is killed without a final route boss.
-  - `12 (Win+)` only when Eden, Amon, or Primal Death is killed.
-- Kill Counts cinder selector defaults to `ALL` and supports single level plus Shift-click inclusive ranges from `1–16`.
-- Numeric table sorting uses underlying numeric values, with click cycle descending → ascending → default.
-- Screenshot Friendly Mode (`SFM`) now has a three-state flow: normal table → row/column selection → compact screenshot table.
-- Zero values are faded but legible; Rare Gold highlights and route-specific colour rules still take precedence.
-- Historical-clear reconciliation: detailed `RunRecords` are the source for route/floor analysis, while `CinderStreakHistory` can add a minimum historical Death-clear/run where retained detailed runs are missing. The app does not fabricate route, floor, or Win+ details from history-only data.
+- Kill Counts cleanup: removed the `ALL/Cx Runs`, `ALL/Cx Death Kill Rate`, and `ALL/Cx Win+ Rate` columns from the table/export surface.
+- Kill Counts headings now reflect the active filter directly, such as `ALL Death Kills`, `C16 Eden Kills`, and `C10–16 Primal Death Kills`.
+- Cinder filter buttons now show selected state persistently; hover no longer mimics selection, and Shift-click range guidance is displayed beside the filter.
+- Screenshot Friendly Mode now auto-selects the first/Class column, recalculates AND-rule highlights immediately, and restores the full original table from the authoritative snapshot after mini-table mode.
 - Working in-app auto-update flow: every normal GUI launch checks GitHub Releases once, compares semantic versions, prompts with **Update now** / **Skip for now**, downloads the `TinyRoguesTracker-vX.Y.Z-Setup.exe` Inno installer, launches it in update mode, and exits cleanly. Offline/check failures are non-blocking.
+- Core views remain **Cinder Highscores**, **Kill Counts**, and **Class Breakdown**.
 - Manual **Check for updates** button uses the same installer path as the startup check.
 
 ## Run from source on Windows
@@ -47,7 +31,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.2.exe
+dist\TinyRoguesTracker-v0.4.3.exe
 ```
 
 ## Installer
@@ -96,7 +80,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.2`.
+7. Publishes artifacts for tagged releases like `v0.4.3`.
 
 ## Development validation
 

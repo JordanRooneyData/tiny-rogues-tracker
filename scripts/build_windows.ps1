@@ -1,5 +1,5 @@
 param(
-  [string]$Version = "0.4.2"
+  [string]$Version = "0.4.3"
 )
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
@@ -8,5 +8,5 @@ py -m pip install --upgrade pip
 py -m pip install -e ".[build,test]"
 py -m pytest -q
 py -m compileall -q tiny_rogues_tracker scripts tests
-py -m PyInstaller --noconfirm --windowed --onefile --name "TinyRoguesTracker-v0.4.2" --add-data "ids.json;." --add-data "tiny_rogues_tracker\assets;tiny_rogues_tracker\assets" scripts\run_gui.py
-Write-Host "Built dist\TinyRoguesTracker-v0.4.2.exe"
+py -m PyInstaller --noconfirm --windowed --onefile --name "TinyRoguesTracker-v0.4.3" --add-data "ids.json;." --add-data "tiny_rogues_tracker\assets;tiny_rogues_tracker\assets" scripts\run_gui.py
+Write-Host "Built dist\TinyRoguesTracker-v0.4.3.exe"

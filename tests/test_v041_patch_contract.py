@@ -24,8 +24,8 @@ def save_with_runs(runs, streaks_len=36):
     return {"TimeOfSave": "test", "RunRecords": runs, "CinderStreakHistory": [{} for _ in range(streaks_len)]}
 
 
-def test_version_is_042_and_views_are_renamed_in_gui_source():
-    assert __version__ == "0.4.2"
+def test_version_is_043_and_views_are_renamed_in_gui_source():
+    assert __version__ == "0.4.3"
     gui = (ROOT / "tiny_rogues_tracker" / "gui.py").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     for text in [gui, readme]:
@@ -59,7 +59,7 @@ def test_sfm_three_state_and_and_based_compact_selection():
     sfm.press()
     assert sfm.state == "selection"
     assert "SFM SELECTION HAS BEEN ACTIVATED" in sfm.message
-    sfm.toggle_row(1); sfm.toggle_row(3); sfm.toggle_col(0); sfm.toggle_col(2)
+    sfm.toggle_row(1); sfm.toggle_row(3); sfm.toggle_col(2)
     assert sfm.highlighted_cells() == {(1, 0), (1, 2), (3, 0), (3, 2)}
     sfm.press()
     assert sfm.state == "compact"
@@ -80,12 +80,12 @@ def test_cinder_filter_all_single_range_and_all_shift_lower_bound():
     sel = CinderSelection.all()
     assert sel.display_text == "Cinder filter: ALL"
     sel, anchor = cinder_selection_from_click(sel, 10, shift=True, anchor=None)
-    assert sel.label == "C1–C10" and anchor == 1
+    assert sel.label == "C1–10" and anchor == 1
     sel, anchor = cinder_selection_from_click(sel, 16, shift=False, anchor=anchor)
     assert sel.label == "C16" and anchor == 16
     sel, anchor = cinder_selection_from_click(sel, 10, shift=False, anchor=anchor)
     sel, anchor = cinder_selection_from_click(sel, 16, shift=True, anchor=anchor)
-    assert sel.label == "C10–C16"
+    assert sel.label == "C10–16"
     sel, anchor = cinder_selection_from_click(sel, "ALL", shift=False, anchor=anchor)
     assert sel.label == "ALL" and anchor is None
 

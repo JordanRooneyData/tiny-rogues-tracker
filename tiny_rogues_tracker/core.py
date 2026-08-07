@@ -52,7 +52,7 @@ class CinderSelection:
             return "ALL"
         if self.low == self.high:
             return f"C{self.low}"
-        return f"C{self.low}–C{self.high}"
+        return f"C{self.low}–{self.high}"
 
     @property
     def display_text(self) -> str:
@@ -84,6 +84,7 @@ class SfmTableState:
     def press(self) -> "SfmTableState":
         if self.state == "normal":
             self.state = "selection"
+            self.selected_cols.add(0)
             self.message = "SFM SELECTION HAS BEEN ACTIVATED. Click row and column headers; selected intersections will be highlighted."
         elif self.state == "selection":
             if not self.selected_rows or not self.selected_cols:
@@ -541,6 +542,6 @@ def export_csv(model: TrackerModel, path: str | Path, selection: CinderSelection
         f.write("view,character_id,character,death,win_plus,eden,amon,primal_death,top_floor_beaten\n")
         for r in model.records:
             f.write(f"cinder_highscores,{r.character_id},\"{r.character}\",{format_cinder(r.best_death)},{format_cinder(r.best_win_plus)},{format_cinder(r.best_eden)},{format_cinder(r.best_amon)},{format_cinder(r.best_primal_death)},{r.top_floor_label}\n")
-        f.write(f"view,filter,character_id,character,runs,death,death_rate,win_plus,win_plus_rate,eden,amon,primal_death\n")
+        f.write(f"view,filter,character_id,character,death_kills,win_plus_kills,eden_kills,amon_kills,primal_death_kills\n")
         for r in table.rows:
-            f.write(f"kill_counts,{table.label},{r.character_id},\"{r.character}\",{r.cx_runs},{r.death_clears},{format_rate(r.death_rate)},{r.win_plus_clears},{format_rate(r.win_plus_rate)},{r.eden_clears},{r.amon_clears},{r.primal_death_clears}\n")
+            f.write(f"kill_counts,{table.label},{r.character_id},\"{r.character}\",{r.death_clears},{r.win_plus_clears},{r.eden_clears},{r.amon_clears},{r.primal_death_clears}\n")

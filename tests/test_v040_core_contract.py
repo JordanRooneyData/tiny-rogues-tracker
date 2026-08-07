@@ -26,8 +26,8 @@ def save_with_runs(runs, streaks_len=36):
     return {"TimeOfSave": "test", "RunRecords": runs, "CinderStreakHistory": [{} for _ in range(streaks_len)]}
 
 
-def test_version_is_042():
-    assert __version__ == "0.4.2"
+def test_version_is_043():
+    assert __version__ == "0.4.3"
 
 
 def test_blank_save_filter_and_single_nonblank_auto_selection(tmp_path):
@@ -66,12 +66,12 @@ def test_cinder_all_single_range_filtering_and_rates():
     assert c16.label == "C16"
     assert c16.by_name["Ninja"].win_plus_rate == pytest.approx(1.0)
     rng = model.completion_rows(CinderSelection.range(12, 16))
-    assert rng.label == "C12–C16"
+    assert rng.label == "C12–16"
     assert rng.by_name["Druid"].cx_runs == 1
     selected, anchor = cinder_selection_from_click(CinderSelection.all(), 10, shift=True, anchor=None)
-    assert selected.label == "C1–C10" and anchor == 1
+    assert selected.label == "C1–10" and anchor == 1
     selected, anchor = cinder_selection_from_click(selected, 16, shift=True, anchor=10)
-    assert selected.label == "C10–C16"
+    assert selected.label == "C10–16"
     assert format_rate(None) == "—"
     assert format_rate(0.5) == "50%"
 

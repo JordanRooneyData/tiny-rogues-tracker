@@ -13,7 +13,6 @@ from .core import (
     discover_save_files,
     export_csv,
     format_cinder,
-    format_rate,
     load_ids,
     sort_key,
     view3_frontier_highlights,
@@ -63,6 +62,7 @@ class SortableTable(QTableWidget):
         self.base_headers: list[str] = []
         self.default_snapshot: list[list[QTableWidgetItem]] = []
         self.default_vertical_headers: list[str] = []
+        self.default_widths: list[int] = []
         self.sfm = SfmTableState()
         self.sfm_button = None
         self.sfm_label = None
@@ -88,6 +88,7 @@ class SortableTable(QTableWidget):
         self.base_headers = [self.horizontalHeaderItem(c).text().replace(" ▲", "").replace(" ▼", "") for c in range(self.columnCount())]
         self.default_vertical_headers = [self.verticalHeaderItem(r).text() if self.verticalHeaderItem(r) else str(r + 1) for r in range(self.rowCount())]
         self.default_snapshot = []
+        self.default_widths = [self.columnWidth(c) for c in range(self.columnCount())]
         for r in range(self.rowCount()):
             self.default_snapshot.append([self.item(r, c).clone() if self.item(r, c) else QTableWidgetItem("") for c in range(self.columnCount())])
         self._apply_header_indicators()
@@ -159,11 +160,17 @@ class SortableTable(QTableWidget):
 
     def _load_snapshot(self, indexed):
         self.clearContents()
+        full_cols = len(self.base_headers)
+        self.setColumnCount(full_cols)
+        self.setHorizontalHeaderLabels(self.base_headers)
         self.setRowCount(len(indexed))
-        self.setVerticalHeaderLabels([h for _, _, h in indexed])
+        self.setVerticalHeaderLabels([h.replace(" [SFM]", "") for _, _, h in indexed])
         for r, (_, row, _) in enumerate(indexed):
             for c, item in enumerate(row):
                 self.setItem(r, c, item.clone())
+        for c, width in enumerate(self.default_widths):
+            if width > 0:
+                self.setColumnWidth(c, width)
 
     def _apply_header_indicators(self):
         for c, text in enumerate(self.base_headers or [self.horizontalHeaderItem(i).text() for i in range(self.columnCount())]):
@@ -207,7 +214,10 @@ class SortableTable(QTableWidget):
         for r in range(self.rowCount()):
             for c in range(self.columnCount()):
                 item = self.item(r, c)
-                if item and (r, c) in selected_cells:
+                if not item:
+                    continue
+                item.setBackground(QColor())
+                if (r, c) in selected_cells:
                     item.setBackground(QColor(PALETTE['deep_violet']))
         # Header selections remain reversible and visible through header text markers.
         if self.sfm.state == "selection":
@@ -263,7 +273,8 @@ class TrackerApp(QMainWindow):
         self.setStyleSheet(f"""
         QMainWindow, QWidget {{ background: {PALETTE['void_black']}; color: {PALETTE['moon_white']}; font-size: 13px; }}
         QPushButton {{ background: {PALETTE['royal_indigo']}; border: 1px solid {PALETTE['castle_purple']}; padding: 8px; border-radius: 5px; }}
-        QPushButton:hover {{ background: {PALETTE['deep_violet']}; }}
+        QPushButton:hover {{ border: 1px solid {PALETTE['moon_white']}; }}
+        QPushButton:checked {{ background: {PALETTE['rare_gold']}; color: {PALETTE['void_black']}; border: 2px solid {PALETTE['moon_white']}; font-weight: bold; }}
         QTableWidget {{ background: {PALETTE['midnight_navy']}; alternate-background-color: {PALETTE['void_black']}; gridline-color: {PALETTE['deep_violet']}; }}
         QHeaderView::section {{ background: {PALETTE['royal_indigo']}; color: {PALETTE['moon_white']}; padding: 5px; }}
         QLabel#Title {{ font-size: 28px; font-weight: bold; color: {PALETTE['moon_white']}; }}
@@ -356,9 +367,10 @@ class TrackerApp(QMainWindow):
         if not self.model: return
         w, layout = self._page(VIEW_KILL_COUNTS)
         filter_label = QLabel(self.current_selection.display_text); layout.addWidget(filter_label)
+        layout.addWidget(QLabel("Shift-click another level to select the full range between them."))
         selector = QHBoxLayout(); group = QButtonGroup(w); group.setExclusive(False)
         def add_filter_button(text, value):
-            b = QPushButton(text); b.setCheckable(True); b.setChecked((value == "ALL" and self.current_selection.label == "ALL") or (isinstance(value, int) and self.current_selection.low <= value <= self.current_selection.high if self.current_selection.low is not None else False))
+            b = QPushButton(text); b.setCheckable(True); b.setObjectName("CinderButton"); b.setChecked((value == "ALL" and self.current_selection.label == "ALL") or (isinstance(value, int) and self.current_selection.low <= value <= self.current_selection.high if self.current_selection.low is not None else False))
             group.addButton(b); selector.addWidget(b)
             def clicked(checked=False, v=value, button=b):
                 mods = QApplication.keyboardModifiers()
@@ -374,17 +386,17 @@ class TrackerApp(QMainWindow):
         self.stack.addWidget(w); self.stack.setCurrentWidget(w)
         rows = self.model.completion_rows(self.current_selection).rows
         prefix = self.current_selection.label
-        headers = ["Class", f"{prefix} Runs", "Death", f"{prefix} Death Kill Rate", "Win+", f"{prefix} Win+ Rate", "Eden", "Amon", "Primal Death"]
+        headers = ["Class", f"{prefix} Death Kills", f"{prefix} Win+ Kills", f"{prefix} Eden Kills", f"{prefix} Amon Kills", f"{prefix} Primal Death Kills"]
         table.setColumnCount(len(headers)); table.setHorizontalHeaderLabels(headers); table.setRowCount(len(rows))
         hi = self.model.completion_highlights(self.current_selection)
-        fields = [None, "cx_runs", "death_clears", "death_rate", "win_plus_clears", "win_plus_rate", "eden_clears", "amon_clears", "primal_death_clears"]
+        fields = [None, "death_clears", "win_plus_clears", "eden_clears", "amon_clears", "primal_death_clears"]
         for r, row in enumerate(rows):
-            vals = [row.character, row.cx_runs, row.death_clears, format_rate(row.death_rate), row.win_plus_clears, format_rate(row.win_plus_rate), row.eden_clears, row.amon_clears, row.primal_death_clears]
-            raws = [row.character, row.cx_runs, row.death_clears, row.death_rate if row.death_rate is not None else -1, row.win_plus_clears, row.win_plus_rate if row.win_plus_rate is not None else -1, row.eden_clears, row.amon_clears, row.primal_death_clears]
+            vals = [row.character, row.death_clears, row.win_plus_clears, row.eden_clears, row.amon_clears, row.primal_death_clears]
+            raws = [row.character, row.death_clears, row.win_plus_clears, row.eden_clears, row.amon_clears, row.primal_death_clears]
             for c, val in enumerate(vals):
                 item = QTableWidgetItem(str(val)); item.setData(Qt.UserRole, raws[c])
                 self._style_item(item, val, gold=bool(fields[c] and (row.character, fields[c]) in hi), route="eden" if fields[c] == "eden_clears" else ("amon" if fields[c] == "amon_clears" else None))
-                if row.inferred_historical_death_runs and c in (1, 2, 3):
+                if row.inferred_historical_death_runs and c == 1:
                     item.setToolTip("Includes minimum historical Death clear evidence from CinderStreakHistory.")
                 table.setItem(r, c, item)
         table.finalize_default_order()
