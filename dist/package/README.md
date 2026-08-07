@@ -24,6 +24,7 @@ Simplest:
 4. It also scans each profile under `C:\Users\*` for:
    `AppData\LocalLow\RubyDev\Tiny Rogues`
 5. If exactly one save location is found, it uses it automatically. If multiple saves/locations are found, it asks you to pick one.
+   - Real Tiny Rogues saves can have large early sections before `RunRecords`; this build validates the whole JSON file instead of only checking the first few KB.
 6. It prints a clean console table and writes `report.txt` beside the executable.
 
 Manual path:

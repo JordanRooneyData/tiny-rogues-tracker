@@ -40,13 +40,13 @@ static bool looks_like_tiny_rogues_save(const fs::path& p) {
     try {
         if (!fs::is_regular_file(p)) return false;
         auto name = p.filename().string();
-        if (name.find("Save") == std::string::npos || p.extension() != ".json") return false;
+        if (name.rfind("Public_Slot", 0) != 0 || name.find("_Save") == std::string::npos || p.extension() != ".json") return false;
         std::ifstream f(p);
         if (!f) return false;
-        std::string head(4096, '\0');
-        f.read(head.data(), static_cast<std::streamsize>(head.size()));
-        head.resize(static_cast<size_t>(f.gcount()));
-        return head.find("RunRecords") != std::string::npos && head.find("CinderStreakHistory") != std::string::npos;
+        std::ostringstream buffer;
+        buffer << f.rdbuf();
+        std::string text = buffer.str();
+        return text.find("RunRecords") != std::string::npos && text.find("CinderStreakHistory") != std::string::npos;
     } catch (...) {
         return false;
     }

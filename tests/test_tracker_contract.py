@@ -39,6 +39,26 @@ def test_report_contains_verified_sample_route_values():
     assert "completion boss IDs" in text
 
 
+def test_auto_locator_accepts_real_saves_even_when_run_records_are_after_4kb(tmp_path):
+    # Real Tiny Rogues saves can have large early sections such as WeaponOccurrences;
+    # RunRecords may begin after byte 4096. Auto-location must still accept them.
+    save = tmp_path / "Public_Slot1_Save1.json"
+    payload = json.loads(SAMPLE_SAVE.read_text(encoding="utf-8"))
+    payload = {"TimeOfSave": payload["TimeOfSave"], "PaddingBeforeRunRecords": "x" * 6000, **payload}
+    save.write_text(json.dumps(payload), encoding="utf-8")
+    out = tmp_path / "report.txt"
+    result = subprocess.run(
+        [str(EXE), "--ids", str(ROOT / "ids.json"), "--report", str(out), "--no-pause"],
+        cwd=tmp_path,
+        env={"HOME": str(tmp_path)},
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert str(save) in result.stdout
+    assert "Tiny Rogues Tracker" in out.read_text(encoding="utf-8")
+
+
 def test_windows_auto_locator_scans_all_user_profiles_and_has_multi_save_picker():
     source = (ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
     assert 'fs::path("C:/Users")' in source or 'fs::path("C:\\\\Users")' in source
