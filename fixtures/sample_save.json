@@ -1,0 +1,114 @@
+{
+  "TimeOfSave": "sample",
+  "RunRecords": [
+    {
+      "StartTime": "sample",
+      "PlayedClass": 21,
+      "CinderLevel": 12,
+      "FloorReached": 11,
+      "bossesKilled": [
+        1,
+        18,
+        21
+      ]
+    },
+    {
+      "StartTime": "sample",
+      "PlayedClass": 23,
+      "CinderLevel": 16,
+      "FloorReached": 11,
+      "bossesKilled": [
+        1,
+        18,
+        22
+      ]
+    },
+    {
+      "StartTime": "sample",
+      "PlayedClass": 32,
+      "CinderLevel": 14,
+      "FloorReached": 11,
+      "bossesKilled": [
+        1,
+        18,
+        23
+      ]
+    }
+  ],
+  "CinderStreakHistory": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {
+      "highestUsedCinderThisRun": 12,
+      "deathKills": 5,
+      "megaDeathKills": 0,
+      "cinderHistoryFlat": [
+        1,
+        1,
+        4,
+        8,
+        12
+      ]
+    },
+    {},
+    {
+      "highestUsedCinderThisRun": 16,
+      "deathKills": 1,
+      "megaDeathKills": 0,
+      "cinderHistoryFlat": [
+        16
+      ]
+    },
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {
+      "highestUsedCinderThisRun": 14,
+      "deathKills": 1,
+      "megaDeathKills": 0,
+      "cinderHistoryFlat": [
+        14
+      ]
+    },
+    {},
+    {}
+  ],
+  "CinderModifiersEnabled": {
+    "0": true
+  },
+  "CompletedObjectives": [
+    1,
+    2
+  ],
+  "DiscoveredTeleportDestinations": [
+    0
+  ],
+  "SelectedGift": 13,
+  "MetaPerks": {
+    "Page_1": {}
+  }
+}

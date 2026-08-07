@@ -1,0 +1,51 @@
+Tiny Rogues Tracker v1
+======================
+
+Save: fixtures/private/Public_Slot1_Save1.json
+Save time: 2026-08-06T10:00:04.3189176+09:30
+Run records: 80
+CinderStreakHistory entries: 35
+Recent cinder levels: 0,1,4,8,12,14,16
+
+Character                Death Max Death Kills   MegaDeath     Run Max   Max Floor    Route? Max
+------------------------------------------------------------------------------------------------
+Class ID 0                       0           0           0           1          11             1
+Class ID 1                       0           0           0           1          11             1
+Class ID 2                       0           0           0           1          10             0
+Class ID 3                       0           0           0           1          11             1
+Class ID 4                       0           0           0           1          11             1
+Class ID 5                       0           0           0           1          11             1
+Class ID 6                       0           0           0           1          11             1
+Class ID 7                       0           1           0           1          11             1
+Class ID 8                       1           1           0           1          11             1
+Class ID 9                       0           0           0           1          11             1
+Class ID 10                      1           6           0           1          11             1
+Class ID 11                      1           3           0           1          11             1
+Class ID 12                      1           2           0           1          11             1
+Class ID 13                      1           1           0           1          11             1
+Class ID 14                      1           4           0           1          11             1
+Class ID 15                      0           0           0           1          11             1
+Class ID 16                      1           1           0           1          11             1
+Class ID 17                      1           1           0          14           3             0
+Class ID 18                      0           0           0          12          11            12
+Class ID 19                      1          10           0          16          11             1
+Class ID 20                      1           5           0           1          11             1
+Class ID 21                     12           5           0           8          11             8
+Class ID 22                      0           0           0          16          11            16
+Class ID 23                     16           1           0           0           0             0
+Class ID 24                      0           0           0          16           6             0
+Class ID 25                      0           0           0          16          10             0
+Class ID 26                      0           0           0           0           0             0
+Class ID 27                      0           0           0          14           2             0
+Class ID 28                      0           0           0           0           0             0
+Class ID 29                      0           0           0          16           3             0
+Class ID 30                      0           0           0           0           0             0
+Class ID 31                      0           0           0           1           6             0
+Class ID 32                     14           1           0           0           0             0
+Class ID 33                      0           0           0           0           0             0
+Class ID 34                      0           0           0           0           0             0
+
+Route note: Death clears come from CinderStreakHistory. Heaven/Hell/Law labels are unresolved unless ids.json is updated with boss/route mappings.
+Candidate deep-route/final boss IDs currently tracked: 19,21,22,23,24.
+
+This tool is read-only. It never writes to the save file.

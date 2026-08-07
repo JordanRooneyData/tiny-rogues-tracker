@@ -1,0 +1,523 @@
+{
+  "schema_version": 1,
+  "game": "Tiny Rogues",
+  "provenance": {
+    "status": "partial_from_supplied_save",
+    "note": "Google Drive OAuth token was revoked in Hermes during this run, so GameAssembly.dll/global-metadata.dat could not be downloaded. IDs below are stable IDs observed in supplied save; unresolved names are intentionally preserved as fallback labels."
+  },
+  "characters": {
+    "0": {
+      "name": "Class ID 0",
+      "status": "observed"
+    },
+    "1": {
+      "name": "Class ID 1",
+      "status": "observed"
+    },
+    "2": {
+      "name": "Class ID 2",
+      "status": "observed"
+    },
+    "3": {
+      "name": "Class ID 3",
+      "status": "observed"
+    },
+    "4": {
+      "name": "Class ID 4",
+      "status": "observed"
+    },
+    "5": {
+      "name": "Class ID 5",
+      "status": "observed"
+    },
+    "6": {
+      "name": "Class ID 6",
+      "status": "observed"
+    },
+    "7": {
+      "name": "Class ID 7",
+      "status": "observed"
+    },
+    "8": {
+      "name": "Class ID 8",
+      "status": "observed"
+    },
+    "9": {
+      "name": "Class ID 9",
+      "status": "observed"
+    },
+    "10": {
+      "name": "Class ID 10",
+      "status": "observed"
+    },
+    "11": {
+      "name": "Class ID 11",
+      "status": "observed"
+    },
+    "12": {
+      "name": "Class ID 12",
+      "status": "observed"
+    },
+    "13": {
+      "name": "Class ID 13",
+      "status": "observed"
+    },
+    "14": {
+      "name": "Class ID 14",
+      "status": "observed"
+    },
+    "15": {
+      "name": "Class ID 15",
+      "status": "observed"
+    },
+    "16": {
+      "name": "Class ID 16",
+      "status": "observed"
+    },
+    "17": {
+      "name": "Class ID 17",
+      "status": "observed"
+    },
+    "18": {
+      "name": "Class ID 18",
+      "status": "observed"
+    },
+    "19": {
+      "name": "Class ID 19",
+      "status": "observed"
+    },
+    "20": {
+      "name": "Class ID 20",
+      "status": "observed"
+    },
+    "21": {
+      "name": "Class ID 21",
+      "status": "observed"
+    },
+    "22": {
+      "name": "Class ID 22",
+      "status": "observed"
+    },
+    "23": {
+      "name": "Class ID 23",
+      "status": "observed"
+    },
+    "24": {
+      "name": "Class ID 24",
+      "status": "observed"
+    },
+    "25": {
+      "name": "Class ID 25",
+      "status": "observed"
+    },
+    "26": {
+      "name": "Class ID 26",
+      "status": "observed"
+    },
+    "27": {
+      "name": "Class ID 27",
+      "status": "observed"
+    },
+    "28": {
+      "name": "Class ID 28",
+      "status": "observed"
+    },
+    "29": {
+      "name": "Class ID 29",
+      "status": "observed"
+    },
+    "30": {
+      "name": "Class ID 30",
+      "status": "observed"
+    },
+    "31": {
+      "name": "Class ID 31",
+      "status": "observed"
+    },
+    "32": {
+      "name": "Class ID 32",
+      "status": "observed"
+    },
+    "33": {
+      "name": "Class ID 33",
+      "status": "observed"
+    },
+    "34": {
+      "name": "Class ID 34",
+      "status": "observed"
+    }
+  },
+  "bosses": {
+    "0": {
+      "name": "Boss ID 0",
+      "status": "observed"
+    },
+    "1": {
+      "name": "Boss ID 1",
+      "status": "observed"
+    },
+    "2": {
+      "name": "Boss ID 2",
+      "status": "observed"
+    },
+    "3": {
+      "name": "Boss ID 3",
+      "status": "observed"
+    },
+    "4": {
+      "name": "Boss ID 4",
+      "status": "observed"
+    },
+    "5": {
+      "name": "Boss ID 5",
+      "status": "observed"
+    },
+    "6": {
+      "name": "Boss ID 6",
+      "status": "observed"
+    },
+    "7": {
+      "name": "Boss ID 7",
+      "status": "observed"
+    },
+    "8": {
+      "name": "Boss ID 8",
+      "status": "observed"
+    },
+    "9": {
+      "name": "Boss ID 9",
+      "status": "observed"
+    },
+    "10": {
+      "name": "Boss ID 10",
+      "status": "observed"
+    },
+    "11": {
+      "name": "Boss ID 11",
+      "status": "observed"
+    },
+    "12": {
+      "name": "Boss ID 12",
+      "status": "observed"
+    },
+    "13": {
+      "name": "Boss ID 13",
+      "status": "observed"
+    },
+    "14": {
+      "name": "Boss ID 14",
+      "status": "observed"
+    },
+    "15": {
+      "name": "Boss ID 15",
+      "status": "observed"
+    },
+    "16": {
+      "name": "Boss ID 16",
+      "status": "observed"
+    },
+    "17": {
+      "name": "Boss ID 17",
+      "status": "observed"
+    },
+    "18": {
+      "name": "Boss ID 18",
+      "status": "observed"
+    },
+    "19": {
+      "name": "Boss ID 19",
+      "status": "observed"
+    },
+    "20": {
+      "name": "Boss ID 20",
+      "status": "observed"
+    },
+    "21": {
+      "name": "Boss ID 21",
+      "status": "observed"
+    },
+    "22": {
+      "name": "Boss ID 22",
+      "status": "observed"
+    },
+    "23": {
+      "name": "Boss ID 23",
+      "status": "observed"
+    },
+    "24": {
+      "name": "Boss ID 24",
+      "status": "observed"
+    },
+    "28": {
+      "name": "Boss ID 28",
+      "status": "observed"
+    },
+    "29": {
+      "name": "Boss ID 29",
+      "status": "observed"
+    },
+    "30": {
+      "name": "Boss ID 30",
+      "status": "observed"
+    },
+    "31": {
+      "name": "Boss ID 31",
+      "status": "observed"
+    },
+    "32": {
+      "name": "Boss ID 32",
+      "status": "observed"
+    },
+    "33": {
+      "name": "Boss ID 33",
+      "status": "observed"
+    },
+    "34": {
+      "name": "Boss ID 34",
+      "status": "observed"
+    },
+    "35": {
+      "name": "Boss ID 35",
+      "status": "observed"
+    },
+    "36": {
+      "name": "Boss ID 36",
+      "status": "observed"
+    },
+    "37": {
+      "name": "Boss ID 37",
+      "status": "observed"
+    },
+    "38": {
+      "name": "Boss ID 38",
+      "status": "observed"
+    },
+    "39": {
+      "name": "Boss ID 39",
+      "status": "observed"
+    },
+    "40": {
+      "name": "Boss ID 40",
+      "status": "observed"
+    },
+    "41": {
+      "name": "Boss ID 41",
+      "status": "observed"
+    },
+    "42": {
+      "name": "Boss ID 42",
+      "status": "observed"
+    },
+    "43": {
+      "name": "Boss ID 43",
+      "status": "observed"
+    },
+    "44": {
+      "name": "Boss ID 44",
+      "status": "observed"
+    },
+    "45": {
+      "name": "Boss ID 45",
+      "status": "observed"
+    }
+  },
+  "routes": {
+    "death": {
+      "name": "Death",
+      "boss_ids": [],
+      "status": "direct_completion_source_is_CinderStreakHistory"
+    },
+    "heaven": {
+      "name": "Heaven",
+      "boss_ids": [],
+      "status": "unresolved_requires_GameAssembly_or_known_route_save"
+    },
+    "hell": {
+      "name": "Hell",
+      "boss_ids": [],
+      "status": "unresolved_requires_GameAssembly_or_known_route_save"
+    },
+    "law": {
+      "name": "Law",
+      "boss_ids": [],
+      "status": "unresolved_requires_GameAssembly_or_known_route_save"
+    },
+    "route_final_candidates": {
+      "name": "Likely route-final floor IDs from deep RunRecords",
+      "boss_ids": [
+        19,
+        21,
+        22,
+        23,
+        24
+      ],
+      "status": "candidate"
+    }
+  },
+  "cinder_modifiers": {
+    "0": {
+      "name": "Cinder Modifier ID 0",
+      "enabled": true,
+      "status": "observed"
+    },
+    "1": {
+      "name": "Cinder Modifier ID 1",
+      "enabled": true,
+      "status": "observed"
+    },
+    "2": {
+      "name": "Cinder Modifier ID 2",
+      "enabled": true,
+      "status": "observed"
+    },
+    "3": {
+      "name": "Cinder Modifier ID 3",
+      "enabled": true,
+      "status": "observed"
+    },
+    "4": {
+      "name": "Cinder Modifier ID 4",
+      "enabled": true,
+      "status": "observed"
+    },
+    "5": {
+      "name": "Cinder Modifier ID 5",
+      "enabled": true,
+      "status": "observed"
+    },
+    "6": {
+      "name": "Cinder Modifier ID 6",
+      "enabled": true,
+      "status": "observed"
+    },
+    "7": {
+      "name": "Cinder Modifier ID 7",
+      "enabled": true,
+      "status": "observed"
+    },
+    "8": {
+      "name": "Cinder Modifier ID 8",
+      "enabled": true,
+      "status": "observed"
+    },
+    "9": {
+      "name": "Cinder Modifier ID 9",
+      "enabled": true,
+      "status": "observed"
+    },
+    "10": {
+      "name": "Cinder Modifier ID 10",
+      "enabled": true,
+      "status": "observed"
+    },
+    "11": {
+      "name": "Cinder Modifier ID 11",
+      "enabled": true,
+      "status": "observed"
+    },
+    "12": {
+      "name": "Cinder Modifier ID 12",
+      "enabled": true,
+      "status": "observed"
+    },
+    "13": {
+      "name": "Cinder Modifier ID 13",
+      "enabled": true,
+      "status": "observed"
+    },
+    "14": {
+      "name": "Cinder Modifier ID 14",
+      "enabled": true,
+      "status": "observed"
+    },
+    "15": {
+      "name": "Cinder Modifier ID 15",
+      "enabled": true,
+      "status": "observed"
+    }
+  },
+  "gifts": {
+    "13": {
+      "name": "Gift ID 13",
+      "status": "selected_in_save"
+    }
+  },
+  "objectives": {
+    "1": {
+      "name": "Objective ID 1",
+      "status": "completed_in_save"
+    },
+    "2": {
+      "name": "Objective ID 2",
+      "status": "completed_in_save"
+    },
+    "3": {
+      "name": "Objective ID 3",
+      "status": "completed_in_save"
+    },
+    "4": {
+      "name": "Objective ID 4",
+      "status": "completed_in_save"
+    },
+    "5": {
+      "name": "Objective ID 5",
+      "status": "completed_in_save"
+    },
+    "7": {
+      "name": "Objective ID 7",
+      "status": "completed_in_save"
+    },
+    "6": {
+      "name": "Objective ID 6",
+      "status": "completed_in_save"
+    },
+    "8": {
+      "name": "Objective ID 8",
+      "status": "completed_in_save"
+    }
+  },
+  "teleports": {
+    "0": {
+      "name": "Teleport ID 0",
+      "status": "discovered_in_save"
+    }
+  },
+  "meta_perks": {
+    "Page_1": {
+      "name": "Page_1",
+      "status": "observed_page",
+      "raw": [
+        41,
+        18,
+        0,
+        33,
+        34,
+        23,
+        79,
+        25,
+        80,
+        27,
+        58,
+        21,
+        45,
+        50,
+        60,
+        61,
+        81,
+        86,
+        88,
+        90,
+        91,
+        62,
+        51,
+        46,
+        24,
+        42,
+        43,
+        92,
+        37,
+        40
+      ]
+    }
+  }
+}

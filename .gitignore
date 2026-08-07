@@ -1,0 +1,5 @@
+build/
+fixtures/private/
+*.pyc
+__pycache__/
+.DS_Store
