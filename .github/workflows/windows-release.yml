@@ -1,0 +1,46 @@
+name: Windows build and release
+
+on:
+  push:
+    branches: [ master, main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PySide6/test/build dependencies
+        run: py -m pip install -e ".[build,test]"
+      - name: Test
+        run: py -m pytest -q
+      - name: Compile Python
+        run: py -m compileall -q tiny_rogues_tracker scripts tests
+      - name: Build PyInstaller exe
+        shell: pwsh
+        run: scripts/build_windows.ps1
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build Inno Setup installer
+        run: iscc installer\TinyRoguesTracker.iss
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: TinyRoguesTracker-v0.4.0-windows
+          path: |
+            dist/TinyRoguesTracker-v0.4.0.exe
+            dist/installer/TinyRoguesTracker-v0.4.0-Setup.exe
+            scripts/install_latest.ps1
+      - name: Publish tagged GitHub Release artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/TinyRoguesTracker-v0.4.0.exe
+            dist/installer/TinyRoguesTracker-v0.4.0-Setup.exe
+            scripts/install_latest.ps1

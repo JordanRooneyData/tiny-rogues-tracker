@@ -1,125 +1,104 @@
-# Tiny Rogues Tracker
+# Tiny Rogues Tracker v0.4.0
 
-Read-only Windows console tracker for Tiny Rogues save files.
+Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## Deliverables
+## What v0.4.0 includes
 
-- `TinyRoguesTracker.exe` — standalone Windows x64 console executable.
-- `ids.json` — permanent ID mapping file used by the tracker.
-- `README.md` — this file.
-- `report.txt` — generated sample plain-text report.
-- `report.csv` — CSV export of View 1 and View 2.
+- PySide6 desktop app with Home screen, Character Records, Completion Counts/Rates, and Character Run Matrix.
+- Read-only save loading; the app never writes to the Tiny Rogues save directory.
+- Automatic save discovery at `C:\Users\*\AppData\LocalLow\RubyDev\Tiny Rogues`.
+- Blank/new-save filtering and newest valid save defaulting.
+- Save browse/reload path from the GUI.
+- Correct Death vs Win+ rules:
+  - Death clear = boss ID `18` killed.
+  - Win+ = Eden `23`, Amon `24`, or Primal Death `19` killed.
+  - Reaching a final floor without the final boss kill is not a clear.
+- Corrected `Top Floor Beaten` semantics using actual boss kills, not merely deepest floor entered.
+- Historical-clear provenance reconciliation: if a clear exists in `CinderStreakHistory` but retained `RunRecords` are missing, runs display as `≥1` with a tooltip rather than a misleading exact `0`.
+- Sortable tables with numeric sort and default restoration model coverage.
+- Screenshot Friendly Mode (`SFM`) table collapse workflow.
+- Rare Gold best-value highlighting, faded zero/no-data values, and strict Tiny Rogues palette roles.
+- Lightweight asynchronous GitHub Releases update check; offline failures do not block startup.
 
-## Golden rule
-
-The tracker is strictly read-only. It opens the save file for reading, generates reports, and never writes back to the Tiny Rogues save folder.
-
-## How to use on Windows
-
-Simplest:
-
-1. Put `TinyRoguesTracker.exe`, `ids.json`, and this `README.md` in the same folder.
-2. Double-click `TinyRoguesTracker.exe`.
-3. It scans the normal Unity save folders:
-   - `C:\Users\<you>\AppData\LocalLow\RubyDev\Tiny Rogues`
-   - every `C:\Users\*\AppData\LocalLow\RubyDev\Tiny Rogues` profile
-4. It parses candidate save files before presenting them.
-5. Blank parses are ignored when they have empty `RunRecords` and no meaningful `CinderStreakHistory`.
-6. If a slot has several iterations such as `Public_Slot1_Save1.json`, `Public_Slot1_Save2.json`, and `Public_Slot1_Save3.json`, the newest file modification time for that slot is preferred.
-7. If exactly one non-blank logical save exists, it is selected automatically. If multiple non-blank logical saves exist, a concise picker shows slot, save time, and run count.
-8. The mode picker appears. Choose:
-   - `1` best records by character
-   - `2` Cinder 16 clear counts
-   - `3` character floor × cinder matrix
-9. The app only asks for a character after you choose mode 3.
-10. `B` goes back, `M` returns to the main mode picker, and `Q` exits from interactive screens.
-11. It writes `report.txt` and `report.csv` beside the executable.
-
-Manual path:
+## Run from source on Windows
 
 ```powershell
-.\TinyRoguesTracker.exe --save "C:\Users\jorda\AppData\LocalLow\RubyDev\Tiny Rogues\Public_Slot1_Save1.json" --ids .\ids.json --report report.txt --csv report.csv
+cd TinyRoguesTracker
+py -m pip install -e ".[test]"
+py -m pip install PySide6
+py scripts\run_gui.py
 ```
 
-For scripted/non-interactive use:
+## Build the Windows app locally
 
 ```powershell
-.\TinyRoguesTracker.exe --save "C:\path\to\Public_Slot1_Save1.json" --ids .\ids.json --report report.txt --csv report.csv --character 21 --no-pause
+cd TinyRoguesTracker
+scripts\build_windows.ps1
 ```
 
-## What it shows
+Expected output:
 
-### View 1 — Best records by character
+```text
+dist\TinyRoguesTracker-v0.4.0.exe
+```
 
-Every character is listed, including characters with zero runs. Columns:
+## Installer
 
-- Best Death-clear cinder
-- Best Win+ cinder
-- Best Eden cinder
-- Best Amon cinder
-- Best PrimalDeath cinder
-- Total recorded runs from `RunRecords`
-- Best normalized in-game floor reached (`FloorReached + 1`)
+The installer definition is:
 
-`—` means no qualifying clear was found. A real Cinder 0 clear displays as `0`.
+```text
+installer\TinyRoguesTracker.iss
+```
 
-### View 2 — Cinder 16 clear counts by character
+It installs into a user-writable directory:
 
-Every character is listed. Columns count qualifying Cinder 16 runs, not boolean flags:
+```text
+%LOCALAPPDATA%\TinyRoguesTracker
+```
 
-- Death C16 clears
-- Win+ C16 clears
-- Eden C16 clears
-- Amon C16 clears
-- PrimalDeath C16 clears
+It does not install mutable files into the Steam/game directory.
 
-### View 3 — Character floor × cinder matrix
+## Bootstrap/update path
 
-One selected character is displayed as a terminal-outcome matrix:
+For public GitHub Releases, the bootstrap script is:
 
-- Columns: cinder `0` through `16`
-- Rows: terminal outcome
-- Normal unsuccessful runs use displayed floor `FloorReached + 1`
-- Any run containing Eden, Amon, or PrimalDeath uses the terminal `Win+` row instead of also appearing as a normal floor outcome
+```powershell
+scripts\install_latest.ps1
+```
 
-The matrix is mutually exclusive: one run goes into one outcome cell only.
+The app checks this release endpoint asynchronously on startup:
 
-## Completion rules
+```text
+https://api.github.com/repos/JDollan/TinyRoguesTracker/releases/latest
+```
 
-Boss kills are the source of truth:
+If a newer release exists, the user is offered an opt-in update. The app downloads the release installer, launches it, and exits cleanly rather than replacing a running executable.
 
-- Death clear: `bossesKilled` contains Death boss ID `18`.
-- Win+: `bossesKilled` contains Eden, Amon, or PrimalDeath.
-- Heaven clear: contains Eden boss ID `23`.
-- Hell clear: contains Amon boss ID `24`.
-- Law clear: contains PrimalDeath boss ID `19`.
-- Reaching Bahamut (`21`), Tiamat (`20`), Geryon (`22`), or their/final-boss floor is **not** a route clear unless the final route boss was killed.
-- `FloorReached` is zero-based in the save, so displayed floor is `FloorReached + 1`.
+## GitHub Actions release workflow
 
-## Data reconciliation
+```text
+.github\workflows\windows-release.yml
+```
 
-- `RunRecords` are preferred for per-run counts and route-specific outcomes.
-- `CinderStreakHistory` is used only to supplement historical Death-best cinder values when `deathKills` proves clears that may be absent from `RunRecords`.
-- `CinderStreakHistory` is not counted as extra runs, which avoids double-counting.
-- Unknown future save fields are preserved by the save file and ignored safely by the tracker.
+On Windows it:
 
-## Mapping note
+1. Installs Python dependencies including PySide6.
+2. Runs tests.
+3. Runs compile checks.
+4. Builds the PyInstaller executable.
+5. Builds an Inno Setup installer.
+6. Uploads artifacts.
+7. Publishes artifacts for tagged releases like `v0.4.0`.
 
-`ids.json` was enriched from the supplied Tiny Rogues metadata and save correlations. Death, Eden, Amon, PrimalDeath, Bahamut, Tiamat, and Geryon are explicitly mapped with confidence/source notes. The decoded character enum currently ends at `Santa` (`33`). Character IDs `34` and `35` are kept as unresolved fallbacks because the supplied metadata did not contain names after `Santa`.
-
-## Build from source
-
-Linux host with MinGW:
+## Development validation
 
 ```bash
-make all
 python3 -m pytest -q
+python3 -m compileall -q tiny_rogues_tracker scripts tests
 ```
 
-Outputs:
+Linux note: PyInstaller cannot cross-build a real Windows `.exe` from Linux. The VPS validates source/tests and provides the Windows GitHub Actions pipeline; the final `.exe`/installer are produced on `windows-latest` or a local Windows machine.
 
-- Linux test binary: `build/TinyRoguesTracker-linux`
-- Windows executable: `dist/TinyRoguesTracker.exe`
-- Windows bundle: `dist/TinyRoguesTracker-v2-windows.zip`
+## Mapping limits
 
-Private supplied saves, logs, game binaries, and source archives are not part of the public project bundle.
+The available decoded character metadata still ends at `Santa` (`33`). Character IDs `34` and `35` remain explicit unresolved mappings until newer game metadata identifies them.
