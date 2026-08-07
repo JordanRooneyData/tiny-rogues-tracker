@@ -52,47 +52,97 @@ static bool looks_like_tiny_rogues_save(const fs::path& p) {
     }
 }
 
-static std::vector<fs::path> candidate_roots() {
-    std::vector<fs::path> roots;
-#ifdef _WIN32
-    auto user = get_env("USERPROFILE");
-    auto appdata = get_env("APPDATA");
-    if (!user.empty()) {
-        // The normal Steam/Unity location, supplied by the user:
-        // C:\Users\jorda\AppData\LocalLow\RubyDev\Tiny Rogues
-        roots.push_back(fs::path(user) / "AppData" / "LocalLow" / "RubyDev" / "Tiny Rogues");
-        roots.push_back(fs::path(user) / "AppData" / "LocalLow");
-        roots.push_back(fs::path(user) / "AppData" / "Local");
-        roots.push_back(fs::path(user) / "Documents");
+static void add_unique_path(std::vector<fs::path>& paths, const fs::path& candidate) {
+    if (candidate.empty()) return;
+    for (const auto& existing : paths) {
+        if (existing == candidate) return;
     }
-    if (!appdata.empty()) roots.push_back(fs::path(appdata));
-#else
-    auto home = get_env("HOME");
-    if (!home.empty()) roots.push_back(fs::path(home));
-#endif
-    roots.push_back(fs::current_path());
-    return roots;
+    paths.push_back(candidate);
 }
 
-static std::string auto_locate_save() {
-    for (const auto& root : candidate_roots()) {
-        if (!fs::exists(root)) continue;
-        if (fs::is_directory(root)) {
-            for (const auto& name : {"Public_Slot1_Save1.json", "Public_Slot1_Save2.json", "Public_Slot1_Save3.json"}) {
-                fs::path direct = root / name;
-                if (looks_like_tiny_rogues_save(direct)) return direct.string();
-            }
-        }
-        std::error_code ec;
-        fs::recursive_directory_iterator it(root, fs::directory_options::skip_permission_denied, ec), end;
-        size_t visited = 0;
-        for (; it != end && !ec; it.increment(ec)) {
-            if (++visited > 250000) break;
-            const auto& p = it->path();
-            if (looks_like_tiny_rogues_save(p)) return p.string();
+static std::vector<fs::path> candidate_save_folders() {
+    std::vector<fs::path> folders;
+#ifdef _WIN32
+    const fs::path tiny_rogues_suffix = fs::path("AppData") / "LocalLow" / "RubyDev" / "Tiny Rogues";
+    auto user = get_env("USERPROFILE");
+    if (!user.empty()) {
+        // First try the current Windows profile's exact Unity save folder:
+        // C:\Users\<you>\AppData\LocalLow\RubyDev\Tiny Rogues
+        add_unique_path(folders, fs::path(user) / tiny_rogues_suffix);
+    }
+
+    // Then scan every local profile under C:\Users\<you> for the exact save folder.
+    // This fixes double-click launches where USERPROFILE is not the profile that owns the save.
+    const fs::path users_root = fs::path("C:/Users");
+    std::error_code ec;
+    if (fs::exists(users_root, ec) && fs::is_directory(users_root, ec)) {
+        for (const auto& entry : fs::directory_iterator(users_root, fs::directory_options::skip_permission_denied, ec)) {
+            if (ec) break;
+            if (!entry.is_directory(ec)) continue;
+            add_unique_path(folders, entry.path() / tiny_rogues_suffix);
         }
     }
-    return "";
+#else
+    auto home = get_env("HOME");
+    if (!home.empty()) add_unique_path(folders, fs::path(home));
+#endif
+    add_unique_path(folders, fs::current_path());
+    return folders;
+}
+
+static std::vector<fs::path> saves_in_folder(const fs::path& folder) {
+    std::vector<fs::path> saves;
+    if (!fs::exists(folder) || !fs::is_directory(folder)) return saves;
+    for (const auto& name : {"Public_Slot1_Save1.json", "Public_Slot1_Save2.json", "Public_Slot1_Save3.json"}) {
+        fs::path direct = folder / name;
+        if (looks_like_tiny_rogues_save(direct)) add_unique_path(saves, direct);
+    }
+    std::error_code ec;
+    for (const auto& entry : fs::directory_iterator(folder, fs::directory_options::skip_permission_denied, ec)) {
+        if (ec) break;
+        const auto& p = entry.path();
+        if (looks_like_tiny_rogues_save(p)) add_unique_path(saves, p);
+    }
+    std::sort(saves.begin(), saves.end(), [](const fs::path& a, const fs::path& b) {
+        std::error_code ea, eb;
+        auto ta = fs::last_write_time(a, ea);
+        auto tb = fs::last_write_time(b, eb);
+        if (!ea && !eb && ta != tb) return ta > tb;
+        return a.string() < b.string();
+    });
+    return saves;
+}
+
+static std::vector<fs::path> collect_save_candidates() {
+    std::vector<fs::path> candidates;
+    for (const auto& folder : candidate_save_folders()) {
+        for (const auto& save : saves_in_folder(folder)) add_unique_path(candidates, save);
+    }
+    return candidates;
+}
+
+static std::string select_save_from_candidates(const std::vector<fs::path>& candidates, bool no_pause) {
+    if (candidates.empty()) return "";
+    if (candidates.size() == 1 || no_pause) return candidates.front().string();
+
+    std::cout << "Multiple Tiny Rogues save folders were found. Pick the save to read:\n";
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        std::cout << "  " << (i + 1) << ") " << candidates[i].string() << "\n";
+    }
+    std::cout << "Enter 1-" << candidates.size() << " (default 1): ";
+    std::string line;
+    std::getline(std::cin, line);
+    if (line.empty()) return candidates.front().string();
+    try {
+        size_t choice = static_cast<size_t>(std::stoul(line));
+        if (choice >= 1 && choice <= candidates.size()) return candidates[choice - 1].string();
+    } catch (...) {}
+    std::cout << "Invalid choice; using 1) " << candidates.front().string() << "\n";
+    return candidates.front().string();
+}
+
+static std::string auto_locate_save(bool no_pause=false) {
+    return select_save_from_candidates(collect_save_candidates(), no_pause);
 }
 
 static json read_json(const std::string& path) {
@@ -295,7 +345,7 @@ int main(int argc, char** argv) {
     try {
         Args args = parse_args(argc, argv);
         if (args.save_path.empty()) {
-            args.save_path = auto_locate_save();
+            args.save_path = auto_locate_save(args.no_pause);
         }
         if (args.save_path.empty()) {
             std::cerr << "Could not auto-locate a Tiny Rogues save. Drag/drop Public_Slot*_Save*.json onto this exe or run with --save PATH.\n";

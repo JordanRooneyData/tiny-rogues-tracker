@@ -19,9 +19,12 @@ Simplest:
 
 1. Put `TinyRoguesTracker.exe` and `ids.json` in the same folder.
 2. Double-click `TinyRoguesTracker.exe`.
-3. It will first check the normal Tiny Rogues Unity save folder:
+3. It checks the normal Tiny Rogues Unity save folder for the current Windows user:
    `C:\Users\<you>\AppData\LocalLow\RubyDev\Tiny Rogues`
-4. It prints a clean console table and writes `report.txt` beside the executable.
+4. It also scans each profile under `C:\Users\*` for:
+   `AppData\LocalLow\RubyDev\Tiny Rogues`
+5. If exactly one save location is found, it uses it automatically. If multiple saves/locations are found, it asks you to pick one.
+6. It prints a clean console table and writes `report.txt` beside the executable.
 
 Manual path:
 

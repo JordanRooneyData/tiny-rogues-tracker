@@ -37,3 +37,11 @@ def test_report_contains_verified_sample_route_values():
     assert "Ninja" in text and "16" in text
     assert "Alchemist" in text and "14" in text
     assert "completion boss IDs" in text
+
+
+def test_windows_auto_locator_scans_all_user_profiles_and_has_multi_save_picker():
+    source = (ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+    assert 'fs::path("C:/Users")' in source or 'fs::path("C:\\\\Users")' in source
+    assert '"AppData") / "LocalLow" / "RubyDev" / "Tiny Rogues"' in source
+    assert "select_save_from_candidates" in source
+    assert "Multiple Tiny Rogues save folders were found" in source
