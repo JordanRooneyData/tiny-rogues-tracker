@@ -43,11 +43,27 @@ struct RunInfo {
 
 struct SaveCandidate {
     fs::path path;
+    std::string slot_key;
     std::string time_of_save;
     size_t run_count = 0;
     size_t cinder_history_count = 0;
     bool non_blank = false;
 };
+
+static std::string slot_key_for_save_name(const std::string& filename) {
+    // Tiny Rogues can keep several save-file iterations per slot, e.g.
+    // Public_Slot1_Save1.json, Public_Slot1_Save2.json, Public_Slot1_Save3.json.
+    // Treat the slot prefix as the logical slot and prefer the newest iteration.
+    const std::string marker = "_Save";
+    size_t pos = filename.find(marker);
+    return pos == std::string::npos ? filename : filename.substr(0, pos);
+}
+
+static fs::file_time_type candidate_mtime(const SaveCandidate& c) {
+    std::error_code ec;
+    auto t = fs::last_write_time(c.path, ec);
+    return ec ? fs::file_time_type::min() : t;
+}
 
 struct Row {
     int death_best = -1;
@@ -113,6 +129,7 @@ static bool parse_save_candidate(const fs::path& p, SaveCandidate& candidate) {
         if (!save.is_object() || !save.contains("RunRecords") || !save["RunRecords"].is_array() ||
             !save.contains("CinderStreakHistory") || !save["CinderStreakHistory"].is_array()) return false;
         candidate.path = p;
+        candidate.slot_key = slot_key_for_save_name(p.filename().string());
         candidate.time_of_save = save.value("TimeOfSave", std::string("unknown"));
         candidate.run_count = save["RunRecords"].size();
         candidate.cinder_history_count = save["CinderStreakHistory"].size();
@@ -169,13 +186,31 @@ static std::vector<SaveCandidate> saves_in_folder(const fs::path& folder) {
     }
     std::sort(saves.begin(), saves.end(), [](const SaveCandidate& a, const SaveCandidate& b) {
         if (a.non_blank != b.non_blank) return a.non_blank > b.non_blank;
-        std::error_code ea, eb;
-        auto ta = fs::last_write_time(a.path, ea);
-        auto tb = fs::last_write_time(b.path, eb);
-        if (!ea && !eb && ta != tb) return ta > tb;
+        auto ta = candidate_mtime(a);
+        auto tb = candidate_mtime(b);
+        if (ta != tb) return ta > tb;
         return a.path.string() < b.path.string();
     });
     return saves;
+}
+
+static std::vector<SaveCandidate> newest_save_per_slot(const std::vector<SaveCandidate>& candidates) {
+    std::map<std::string, SaveCandidate> newest;
+    for (const auto& c : candidates) {
+        std::string key = c.path.parent_path().string() + "|" + c.slot_key;
+        auto it = newest.find(key);
+        if (it == newest.end() || candidate_mtime(c) > candidate_mtime(it->second)) newest[key] = c;
+    }
+    std::vector<SaveCandidate> out;
+    for (const auto& kv : newest) out.push_back(kv.second);
+    std::sort(out.begin(), out.end(), [](const SaveCandidate& a, const SaveCandidate& b) {
+        if (a.non_blank != b.non_blank) return a.non_blank > b.non_blank;
+        auto ta = candidate_mtime(a);
+        auto tb = candidate_mtime(b);
+        if (ta != tb) return ta > tb;
+        return a.path.string() < b.path.string();
+    });
+    return out;
 }
 
 static std::vector<SaveCandidate> collect_save_candidates() {
@@ -189,9 +224,12 @@ static std::vector<SaveCandidate> collect_save_candidates() {
     }
     std::sort(candidates.begin(), candidates.end(), [](const SaveCandidate& a, const SaveCandidate& b){
         if (a.non_blank != b.non_blank) return a.non_blank > b.non_blank;
+        auto ta = candidate_mtime(a);
+        auto tb = candidate_mtime(b);
+        if (ta != tb) return ta > tb;
         return a.path.string() < b.path.string();
     });
-    return candidates;
+    return newest_save_per_slot(candidates);
 }
 
 static std::string select_save_from_candidates(const std::vector<SaveCandidate>& candidates, bool no_pause) {
@@ -203,6 +241,7 @@ static std::string select_save_from_candidates(const std::vector<SaveCandidate>&
         std::cout << "Multiple non-blank Tiny Rogues saves were found. Pick the save to read:\n";
         for (size_t i = 0; i < non_blank.size(); ++i) {
             std::cout << "  " << (i + 1) << ") " << non_blank[i].path.string()
+                      << " | slot: " << non_blank[i].slot_key
                       << " | saved: " << non_blank[i].time_of_save
                       << " | runs: " << non_blank[i].run_count << "\n";
         }

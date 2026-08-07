@@ -1,5 +1,7 @@
 import json
+import os
 import subprocess
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -130,6 +132,33 @@ def test_blank_save_filtering_and_single_non_blank_auto_selection(tmp_path):
     assert "Tiny Rogues Tracker" in out.read_text(encoding="utf-8")
 
 
+def test_multiple_iterations_for_same_slot_default_to_newest_save_file(tmp_path):
+    old_payload = json.loads(SAMPLE_SAVE.read_text(encoding="utf-8"))
+    new_payload = json.loads(SAMPLE_SAVE.read_text(encoding="utf-8"))
+    old_payload["TimeOfSave"] = "old-iteration"
+    new_payload["TimeOfSave"] = "new-iteration"
+    old_save = tmp_path / "Public_Slot1_Save1.json"
+    new_save = tmp_path / "Public_Slot1_Save3.json"
+    old_save.write_text(json.dumps(old_payload), encoding="utf-8")
+    new_save.write_text(json.dumps(new_payload), encoding="utf-8")
+    now = time.time()
+    os.utime(old_save, (now - 100, now - 100))
+    os.utime(new_save, (now, now))
+    out = tmp_path / "report.txt"
+    csv = tmp_path / "report.csv"
+    result = subprocess.run(
+        [str(EXE), "--ids", str(ROOT / "ids.json"), "--report", str(out), "--csv", str(csv), "--character", "21", "--no-pause"],
+        cwd=tmp_path,
+        env={"HOME": str(tmp_path)},
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert str(new_save) in result.stdout
+    assert str(old_save) not in result.stdout
+    assert "Save time: new-iteration" in out.read_text(encoding="utf-8")
+
+
 def test_auto_locator_accepts_real_saves_even_when_run_records_are_after_4kb(tmp_path):
     save = tmp_path / "Public_Slot1_Save1.json"
     payload = json.loads(SAMPLE_SAVE.read_text(encoding="utf-8"))
@@ -169,3 +198,5 @@ def test_windows_auto_locator_and_controls_are_present_static():
     assert "Multiple non-blank Tiny Rogues saves were found" in source
     assert "B back" in source and "M main menu" in source and "Q exit" in source
     assert "save_has_meaningful_data" in source
+    assert "newest_save_per_slot" in source
+    assert "slot_key_for_save_name" in source

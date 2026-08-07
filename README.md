@@ -25,14 +25,15 @@ Simplest:
    - every `C:\Users\*\AppData\LocalLow\RubyDev\Tiny Rogues` profile
 4. It parses candidate save files before presenting them.
 5. Blank parses are ignored when they have empty `RunRecords` and no meaningful `CinderStreakHistory`.
-6. If exactly one non-blank save exists, it is selected automatically. If multiple non-blank saves exist, a concise picker shows save time and run count.
-7. The mode picker appears. Choose:
+6. If a slot has several iterations such as `Public_Slot1_Save1.json`, `Public_Slot1_Save2.json`, and `Public_Slot1_Save3.json`, the newest file modification time for that slot is preferred.
+7. If exactly one non-blank logical save exists, it is selected automatically. If multiple non-blank logical saves exist, a concise picker shows slot, save time, and run count.
+8. The mode picker appears. Choose:
    - `1` best records by character
    - `2` Cinder 16 clear counts
    - `3` character floor × cinder matrix
-8. The app only asks for a character after you choose mode 3.
-9. `B` goes back, `M` returns to the main mode picker, and `Q` exits from interactive screens.
-10. It writes `report.txt` and `report.csv` beside the executable.
+9. The app only asks for a character after you choose mode 3.
+10. `B` goes back, `M` returns to the main mode picker, and `Q` exits from interactive screens.
+11. It writes `report.txt` and `report.csv` beside the executable.
 
 Manual path:
 
