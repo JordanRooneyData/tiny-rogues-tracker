@@ -19,39 +19,46 @@ Simplest:
 
 1. Put `TinyRoguesTracker.exe` and `ids.json` in the same folder.
 2. Double-click `TinyRoguesTracker.exe`.
-3. It will try to auto-locate a Tiny Rogues save by searching common Windows user save locations for JSON files containing `RunRecords` and `CinderStreakHistory`.
+3. It will first check the normal Tiny Rogues Unity save folder:
+   `C:\Users\<you>\AppData\LocalLow\RubyDev\Tiny Rogues`
 4. It prints a clean console table and writes `report.txt` beside the executable.
 
 Manual path:
 
 ```powershell
-.\TinyRoguesTracker.exe --save "C:\path\to\Public_Slot1_Save1.json" --ids .\ids.json --report report.txt
+.\TinyRoguesTracker.exe --save "C:\Users\jorda\AppData\LocalLow\RubyDev\Tiny Rogues\Public_Slot1_Save1.json" --ids .\ids.json --report report.txt
 ```
 
-## Current v1 behaviour
+## Current v2 behaviour
 
-The tool extracts:
+The tool reports the highest completed cinder value per character for:
 
-- Character/class IDs from `CinderStreakHistory` and `RunRecords[].PlayedClass`
-- Death highest cinder from `CinderStreakHistory[].highestUsedCinderThisRun`
-- Death kills from `CinderStreakHistory[].deathKills`
-- Mega Death kills from `CinderStreakHistory[].megaDeathKills`
-- Recent run max cinder from `RunRecords[].CinderLevel`
-- Recent max floor from `RunRecords[].FloorReached`
-- Boss IDs from `RunRecords[].bossesKilled`
-- Cinder modifier IDs from `CinderModifiersEnabled`
-- Gift IDs from `SelectedGift` / `UnlockedGifts` where present
-- Objective IDs from `CompletedObjectives`
-- Teleport IDs from `DiscoveredTeleportDestinations`
-- Meta perk keys from `MetaPerks`
+- `Death` — from `CinderStreakHistory[].highestUsedCinderThisRun`, backed by `deathKills`.
+- `Heaven` — inferred from observed post-Death boss pair `[21,23]`; final/completion boss ID `23` is labelled `Eden`.
+- `Hell` — inferred from observed post-Death boss pair `[22,24]`; final/completion boss ID `24` is labelled `Amon`.
+- `Law` / Shadow Planes — inferred from observed post-Death boss pair `[20,19]`; final/completion boss ID `19` is labelled `Primal Death`.
 
-## Important mapping note
+It also extracts and preserves mapping sections for:
 
-This build includes a real, permanent `ids.json`, but the friendly names are only partially resolved because Hermes could not access the Google Drive `gpt sources` folder during this run: the configured Google token was expired/revoked (`invalid_grant`).
+- Character/class IDs
+- Boss IDs
+- Cinder modifier IDs
+- Gifts
+- Objectives
+- Teleports
+- Meta perks
 
-So v1 is structurally complete and usable, but unresolved labels intentionally remain as safe fallbacks such as `Class ID 23` and `Boss ID 21`.
+## Mapping note
 
-Once `GameAssembly.dll` and `global-metadata.dat` are available locally, `ids.json` can be upgraded without changing the parser.
+Google Drive auth was restored and the `gpt sources` archive was downloaded. `global-metadata.dat` yielded enum names for player classes, boss IDs, cinder modifiers, gifts, and objectives.
+
+The supplied `GameAssembly.dll` inside the RAR extracted short by 207,360 bytes, so this build does **not** trust binary disassembly. `ids.json` is still permanent and upgradeable; unresolved entries are kept as safe fallback labels like `Boss ID 45`.
+
+Route final boss labels are based on the save's observed post-Death boss pairs plus public route naming:
+
+- High Heavens / Heaven → Eden
+- Burning Hells / Hell → Amon
+- Shadow Planes / Law → Primal Death
 
 ## Build from source
 
@@ -77,4 +84,4 @@ tests/test_tracker_contract.py
 Makefile
 ```
 
-Private supplied saves are not required by tests and are not part of the public project bundle.
+Private supplied saves, logs, game binaries, and Google Drive source archives are not part of the public project bundle.

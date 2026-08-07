@@ -1,5 +1,6 @@
 build/
 fixtures/private/
+source_inputs/
 *.pyc
 __pycache__/
 .DS_Store

@@ -1,523 +1,594 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "game": "Tiny Rogues",
   "provenance": {
-    "status": "partial_from_supplied_save",
-    "note": "Google Drive OAuth token was revoked in Hermes during this run, so GameAssembly.dll/global-metadata.dat could not be downloaded. IDs below are stable IDs observed in supplied save; unresolved names are intentionally preserved as fallback labels."
+    "status": "enriched_from_google_drive_save_folder_and_il2cpp_metadata_strings",
+    "note": "Generated from restored Google Drive archive Dollans cinder tracker files.rar. global-metadata.dat yielded enum names for player classes, bosses, cinder modifiers, gifts, and objectives. GameAssembly.dll in the archive extracted short by 207,360 bytes, so no binary disassembly was trusted; tracker remains read-only.",
+    "source_paths": [
+      "Tiny Rogues/GameAssembly.dll",
+      "Tiny Rogues/Tiny Rogues_Data/il2cpp_data/Metadata/global-metadata.dat",
+      "C:/Users/jorda/AppData/LocalLow/RubyDev/Tiny Rogues"
+    ]
   },
   "characters": {
     "0": {
-      "name": "Class ID 0",
-      "status": "observed"
+      "name": "TheHero",
+      "status": "metadata_enum"
     },
     "1": {
-      "name": "Class ID 1",
-      "status": "observed"
+      "name": "Knight",
+      "status": "metadata_enum"
     },
     "2": {
-      "name": "Class ID 2",
-      "status": "observed"
+      "name": "Sorcerer",
+      "status": "metadata_enum"
     },
     "3": {
-      "name": "Class ID 3",
-      "status": "observed"
+      "name": "Ranger",
+      "status": "metadata_enum"
     },
     "4": {
-      "name": "Class ID 4",
-      "status": "observed"
+      "name": "Bandit",
+      "status": "metadata_enum"
     },
     "5": {
-      "name": "Class ID 5",
-      "status": "observed"
+      "name": "Cleric",
+      "status": "metadata_enum"
     },
     "6": {
-      "name": "Class ID 6",
-      "status": "observed"
+      "name": "Pyromancer",
+      "status": "metadata_enum"
     },
     "7": {
-      "name": "Class ID 7",
-      "status": "observed"
+      "name": "Thief",
+      "status": "metadata_enum"
     },
     "8": {
-      "name": "Class ID 8",
-      "status": "observed"
+      "name": "Wanderer",
+      "status": "metadata_enum"
     },
     "9": {
-      "name": "Class ID 9",
-      "status": "observed"
+      "name": "Warrior",
+      "status": "metadata_enum"
     },
     "10": {
-      "name": "Class ID 10",
-      "status": "observed"
+      "name": "Deprived",
+      "status": "metadata_enum"
     },
     "11": {
-      "name": "Class ID 11",
-      "status": "observed"
+      "name": "Gunslinger",
+      "status": "metadata_enum"
     },
     "12": {
-      "name": "Class ID 12",
-      "status": "observed"
+      "name": "Doppelganger",
+      "status": "metadata_enum"
     },
     "13": {
-      "name": "Class ID 13",
-      "status": "observed"
+      "name": "Wizard",
+      "status": "metadata_enum"
     },
     "14": {
-      "name": "Class ID 14",
-      "status": "observed"
+      "name": "Soldier",
+      "status": "metadata_enum"
     },
     "15": {
-      "name": "Class ID 15",
-      "status": "observed"
+      "name": "Bard",
+      "status": "metadata_enum"
     },
     "16": {
-      "name": "Class ID 16",
-      "status": "observed"
+      "name": "Mystic",
+      "status": "metadata_enum"
     },
     "17": {
-      "name": "Class ID 17",
-      "status": "observed"
+      "name": "Monk",
+      "status": "metadata_enum"
     },
     "18": {
-      "name": "Class ID 18",
-      "status": "observed"
+      "name": "Paladin",
+      "status": "metadata_enum"
     },
     "19": {
-      "name": "Class ID 19",
-      "status": "observed"
+      "name": "SuperHero",
+      "status": "metadata_enum"
     },
     "20": {
-      "name": "Class ID 20",
-      "status": "observed"
+      "name": "Necromancer",
+      "status": "metadata_enum"
     },
     "21": {
-      "name": "Class ID 21",
-      "status": "observed"
+      "name": "Druid",
+      "status": "metadata_enum"
     },
     "22": {
-      "name": "Class ID 22",
-      "status": "observed"
+      "name": "Barbarian",
+      "status": "metadata_enum"
     },
     "23": {
-      "name": "Class ID 23",
-      "status": "observed"
+      "name": "Ninja",
+      "status": "metadata_enum"
     },
     "24": {
-      "name": "Class ID 24",
-      "status": "observed"
+      "name": "DemonHunter",
+      "status": "metadata_enum"
     },
     "25": {
-      "name": "Class ID 25",
-      "status": "observed"
+      "name": "Cyborg",
+      "status": "metadata_enum"
     },
     "26": {
-      "name": "Class ID 26",
-      "status": "observed"
+      "name": "Dancer",
+      "status": "metadata_enum"
     },
     "27": {
-      "name": "Class ID 27",
-      "status": "observed"
+      "name": "Dragoon",
+      "status": "metadata_enum"
     },
     "28": {
-      "name": "Class ID 28",
-      "status": "observed"
+      "name": "Esper",
+      "status": "metadata_enum"
     },
     "29": {
-      "name": "Class ID 29",
-      "status": "observed"
+      "name": "Jester",
+      "status": "metadata_enum"
     },
     "30": {
-      "name": "Class ID 30",
-      "status": "observed"
+      "name": "Pirate",
+      "status": "metadata_enum"
     },
     "31": {
-      "name": "Class ID 31",
-      "status": "observed"
+      "name": "Samurai",
+      "status": "metadata_enum"
     },
     "32": {
-      "name": "Class ID 32",
-      "status": "observed"
+      "name": "Alchemist",
+      "status": "metadata_enum"
     },
     "33": {
-      "name": "Class ID 33",
-      "status": "observed"
+      "name": "Santa",
+      "status": "metadata_enum"
     },
     "34": {
       "name": "Class ID 34",
-      "status": "observed"
+      "status": "observed_unresolved"
+    },
+    "35": {
+      "name": "Class ID 35",
+      "status": "observed_unresolved"
     }
   },
   "bosses": {
     "0": {
-      "name": "Boss ID 0",
-      "status": "observed"
+      "name": "Minotaur",
+      "status": "metadata_enum"
     },
     "1": {
-      "name": "Boss ID 1",
-      "status": "observed"
+      "name": "SpiderQueen",
+      "status": "metadata_enum"
     },
     "2": {
-      "name": "Boss ID 2",
-      "status": "observed"
+      "name": "Lich",
+      "status": "metadata_enum"
     },
     "3": {
-      "name": "Boss ID 3",
-      "status": "observed"
+      "name": "Banshee",
+      "status": "metadata_enum"
     },
     "4": {
-      "name": "Boss ID 4",
-      "status": "observed"
+      "name": "QueenBee",
+      "status": "metadata_enum"
     },
     "5": {
-      "name": "Boss ID 5",
-      "status": "observed"
+      "name": "Mandrake",
+      "status": "metadata_enum"
     },
     "6": {
-      "name": "Boss ID 6",
-      "status": "observed"
+      "name": "Gargoyles",
+      "status": "metadata_enum"
     },
     "7": {
-      "name": "Boss ID 7",
-      "status": "observed"
+      "name": "Vampire",
+      "status": "metadata_enum"
     },
     "8": {
-      "name": "Boss ID 8",
-      "status": "observed"
+      "name": "Sphinx",
+      "status": "metadata_enum"
     },
     "9": {
-      "name": "Boss ID 9",
-      "status": "observed"
+      "name": "Pharaoh",
+      "status": "metadata_enum"
     },
     "10": {
-      "name": "Boss ID 10",
-      "status": "observed"
+      "name": "Kraken",
+      "status": "metadata_enum"
     },
     "11": {
-      "name": "Boss ID 11",
-      "status": "observed"
+      "name": "Neptune",
+      "status": "metadata_enum"
     },
     "12": {
-      "name": "Boss ID 12",
-      "status": "observed"
+      "name": "RedDragon",
+      "status": "metadata_enum"
     },
     "13": {
-      "name": "Boss ID 13",
-      "status": "observed"
+      "name": "Phoenix",
+      "status": "metadata_enum"
     },
     "14": {
-      "name": "Boss ID 14",
-      "status": "observed"
+      "name": "Cerberus",
+      "status": "metadata_enum"
     },
     "15": {
-      "name": "Boss ID 15",
-      "status": "observed"
+      "name": "Succubus",
+      "status": "metadata_enum"
     },
     "16": {
-      "name": "Boss ID 16",
-      "status": "observed"
+      "name": "KingOoze",
+      "status": "metadata_enum"
     },
     "17": {
-      "name": "Boss ID 17",
-      "status": "observed"
+      "name": "MindFlamer",
+      "status": "metadata_enum"
     },
     "18": {
-      "name": "Boss ID 18",
-      "status": "observed"
+      "name": "Death",
+      "status": "metadata_enum"
     },
     "19": {
-      "name": "Boss ID 19",
-      "status": "observed"
+      "name": "Primal Death",
+      "status": "save_route_inferred",
+      "note": "metadata_enum_name_was_MegaPrimalDeath; observed as final boss in post-Death pair [20,19]",
+      "metadata_name": "MegaPrimalDeath"
     },
     "20": {
-      "name": "Boss ID 20",
-      "status": "observed"
+      "name": "Tiamat",
+      "status": "save_route_inferred",
+      "note": "observed as entry/paired boss before Primal Death in post-Death pair [20,19]",
+      "metadata_name": "MegaAmon"
     },
     "21": {
-      "name": "Boss ID 21",
-      "status": "observed"
+      "name": "Bahamut",
+      "status": "save_route_inferred",
+      "note": "observed as entry/paired boss before Eden in post-Death pair [21,23]",
+      "metadata_name": "MegaEden"
     },
     "22": {
-      "name": "Boss ID 22",
-      "status": "observed"
+      "name": "Geryon",
+      "status": "save_route_inferred",
+      "note": "observed as entry/paired boss before Amon in post-Death pair [22,24]",
+      "metadata_name": "GoblinKing"
     },
     "23": {
-      "name": "Boss ID 23",
-      "status": "observed"
+      "name": "Eden",
+      "status": "save_route_inferred",
+      "note": "observed as final boss in High Heavens/Heaven pair [21,23]; metadata enum name was MoleKing",
+      "metadata_name": "MoleKing"
     },
     "24": {
-      "name": "Boss ID 24",
-      "status": "observed"
+      "name": "Amon",
+      "status": "save_route_inferred",
+      "note": "observed as final boss in Burning Hells/Hell pair [22,24]; metadata enum name was Troll",
+      "metadata_name": "Troll"
+    },
+    "25": {
+      "name": "ShamblingMound",
+      "status": "metadata_enum"
+    },
+    "26": {
+      "name": "ThePiedPiper",
+      "status": "metadata_enum"
+    },
+    "27": {
+      "name": "BookGolem",
+      "status": "metadata_enum"
     },
     "28": {
-      "name": "Boss ID 28",
-      "status": "observed"
+      "name": "IceDragon",
+      "status": "metadata_enum"
     },
     "29": {
-      "name": "Boss ID 29",
-      "status": "observed"
+      "name": "TheKingsGuard",
+      "status": "metadata_enum"
     },
     "30": {
-      "name": "Boss ID 30",
-      "status": "observed"
+      "name": "ArcaneGolem",
+      "status": "metadata_enum"
     },
     "31": {
-      "name": "Boss ID 31",
-      "status": "observed"
+      "name": "EvilOak",
+      "status": "metadata_enum"
     },
     "32": {
-      "name": "Boss ID 32",
-      "status": "observed"
+      "name": "RockGolem",
+      "status": "metadata_enum"
     },
     "33": {
-      "name": "Boss ID 33",
-      "status": "observed"
+      "name": "TangleMawJaw",
+      "status": "metadata_enum"
     },
     "34": {
-      "name": "Boss ID 34",
-      "status": "observed"
+      "name": "VerminKing",
+      "status": "metadata_enum"
     },
     "35": {
-      "name": "Boss ID 35",
-      "status": "observed"
+      "name": "JoustingChampion",
+      "status": "metadata_enum"
     },
     "36": {
-      "name": "Boss ID 36",
-      "status": "observed"
+      "name": "LibraryGuardian",
+      "status": "metadata_enum"
     },
     "37": {
-      "name": "Boss ID 37",
-      "status": "observed"
+      "name": "CommanderWalrus",
+      "status": "metadata_enum"
     },
     "38": {
-      "name": "Boss ID 38",
-      "status": "observed"
+      "name": "TheArchPontiff",
+      "status": "metadata_enum"
     },
     "39": {
-      "name": "Boss ID 39",
-      "status": "observed"
+      "name": "TheAbomination",
+      "status": "metadata_enum"
     },
     "40": {
-      "name": "Boss ID 40",
-      "status": "observed"
+      "name": "MegaDeath",
+      "status": "metadata_enum"
     },
     "41": {
       "name": "Boss ID 41",
-      "status": "observed"
+      "status": "observed_unresolved"
     },
     "42": {
       "name": "Boss ID 42",
-      "status": "observed"
+      "status": "observed_unresolved"
     },
     "43": {
       "name": "Boss ID 43",
-      "status": "observed"
+      "status": "observed_unresolved"
     },
     "44": {
       "name": "Boss ID 44",
-      "status": "observed"
+      "status": "observed_unresolved"
     },
     "45": {
       "name": "Boss ID 45",
-      "status": "observed"
+      "status": "observed_unresolved"
     }
   },
   "routes": {
     "death": {
       "name": "Death",
-      "boss_ids": [],
-      "status": "direct_completion_source_is_CinderStreakHistory"
-    },
-    "heaven": {
-      "name": "Heaven",
-      "boss_ids": [],
-      "status": "unresolved_requires_GameAssembly_or_known_route_save"
-    },
-    "hell": {
-      "name": "Hell",
-      "boss_ids": [],
-      "status": "unresolved_requires_GameAssembly_or_known_route_save"
+      "label": "Death",
+      "completion_boss_ids": [
+        18
+      ],
+      "source": "CinderStreakHistory deathKills/highestUsedCinderThisRun plus RunRecords boss 18"
     },
     "law": {
-      "name": "Law",
-      "boss_ids": [],
-      "status": "unresolved_requires_GameAssembly_or_known_route_save"
+      "name": "Law / Shadow Planes",
+      "label": "Law",
+      "entry_boss_ids": [
+        20
+      ],
+      "completion_boss_ids": [
+        19
+      ],
+      "source": "Observed post-Death save pair [20,19]; public guide places Primal Death in the Shadow Planes/Law route."
     },
-    "route_final_candidates": {
-      "name": "Likely route-final floor IDs from deep RunRecords",
-      "boss_ids": [
-        19,
-        21,
-        22,
-        23,
+    "heaven": {
+      "name": "Heaven / High Heavens",
+      "label": "Heaven",
+      "entry_boss_ids": [
+        21
+      ],
+      "completion_boss_ids": [
+        23
+      ],
+      "source": "Observed post-Death save pair [21,23]; public guide places Eden in the High Heavens/Heaven route."
+    },
+    "hell": {
+      "name": "Hell / Burning Hells",
+      "label": "Hell",
+      "entry_boss_ids": [
+        22
+      ],
+      "completion_boss_ids": [
         24
       ],
-      "status": "candidate"
+      "source": "Observed post-Death save pair [22,24]; public guide places Amon in the Burning Hells/Hell route."
     }
   },
   "cinder_modifiers": {
     "0": {
-      "name": "Cinder Modifier ID 0",
-      "enabled": true,
-      "status": "observed"
+      "name": "OccultGrounds",
+      "status": "metadata_enum"
     },
     "1": {
-      "name": "Cinder Modifier ID 1",
-      "enabled": true,
-      "status": "observed"
+      "name": "CenturionHunter",
+      "status": "metadata_enum"
     },
     "2": {
-      "name": "Cinder Modifier ID 2",
-      "enabled": true,
-      "status": "observed"
+      "name": "EbbAndFlow",
+      "status": "metadata_enum"
     },
     "3": {
-      "name": "Cinder Modifier ID 3",
-      "enabled": true,
-      "status": "observed"
+      "name": "DefensiveMeasures",
+      "status": "metadata_enum"
     },
     "4": {
-      "name": "Cinder Modifier ID 4",
-      "enabled": true,
-      "status": "observed"
+      "name": "TwiceEnchanted",
+      "status": "metadata_enum"
     },
     "5": {
-      "name": "Cinder Modifier ID 5",
-      "enabled": true,
-      "status": "observed"
+      "name": "WarmingUp",
+      "status": "metadata_enum"
     },
     "6": {
-      "name": "Cinder Modifier ID 6",
-      "enabled": true,
-      "status": "observed"
+      "name": "MonsterJam",
+      "status": "metadata_enum"
     },
     "7": {
-      "name": "Cinder Modifier ID 7",
-      "enabled": true,
-      "status": "observed"
+      "name": "InferiorArms",
+      "status": "metadata_enum"
     },
     "8": {
-      "name": "Cinder Modifier ID 8",
-      "enabled": true,
-      "status": "observed"
+      "name": "Archnemesis",
+      "status": "metadata_enum"
     },
     "9": {
-      "name": "Cinder Modifier ID 9",
-      "enabled": true,
-      "status": "observed"
+      "name": "RemoteGuardians",
+      "status": "metadata_enum"
     },
     "10": {
-      "name": "Cinder Modifier ID 10",
-      "enabled": true,
-      "status": "observed"
+      "name": "ConquerorsWill",
+      "status": "metadata_enum"
     },
     "11": {
-      "name": "Cinder Modifier ID 11",
-      "enabled": true,
-      "status": "observed"
+      "name": "DoubleEdgedSword",
+      "status": "metadata_enum"
     },
     "12": {
-      "name": "Cinder Modifier ID 12",
-      "enabled": true,
-      "status": "observed"
+      "name": "CalamitousVisions",
+      "status": "metadata_enum"
     },
     "13": {
-      "name": "Cinder Modifier ID 13",
-      "enabled": true,
-      "status": "observed"
+      "name": "Pestilence",
+      "status": "metadata_enum"
     },
     "14": {
-      "name": "Cinder Modifier ID 14",
-      "enabled": true,
-      "status": "observed"
+      "name": "AfterlifeExpress",
+      "status": "metadata_enum"
     },
     "15": {
-      "name": "Cinder Modifier ID 15",
-      "enabled": true,
-      "status": "observed"
+      "name": "UnjustIncentive",
+      "status": "metadata_enum"
     }
   },
   "gifts": {
+    "0": {
+      "name": "SacramentalBread",
+      "status": "metadata_enum"
+    },
+    "1": {
+      "name": "BombPouch",
+      "status": "metadata_enum"
+    },
+    "2": {
+      "name": "BrokenHeroSword",
+      "status": "metadata_enum"
+    },
+    "3": {
+      "name": "CoinBag",
+      "status": "metadata_enum"
+    },
+    "4": {
+      "name": "Compass",
+      "status": "metadata_enum"
+    },
+    "5": {
+      "name": "KeyRing",
+      "status": "metadata_enum"
+    },
+    "6": {
+      "name": "ManaElixir",
+      "status": "metadata_enum"
+    },
+    "7": {
+      "name": "PoisonFilledJar",
+      "status": "metadata_enum"
+    },
+    "8": {
+      "name": "RepairPowder",
+      "status": "metadata_enum"
+    },
+    "9": {
+      "name": "GoldenSpatula",
+      "status": "metadata_enum"
+    },
+    "10": {
+      "name": "ScrollOfEscape",
+      "status": "metadata_enum"
+    },
+    "11": {
+      "name": "Tent",
+      "status": "metadata_enum"
+    },
+    "12": {
+      "name": "EtherealOrb",
+      "status": "metadata_enum"
+    },
     "13": {
-      "name": "Gift ID 13",
-      "status": "selected_in_save"
+      "name": "DiceCase",
+      "status": "metadata_enum"
+    },
+    "14": {
+      "name": "SmugglerPouch",
+      "status": "metadata_enum"
+    },
+    "15": {
+      "name": "MysteryBox",
+      "status": "metadata_enum"
     }
   },
   "objectives": {
+    "0": {
+      "name": "UNKNOWN_WORLD_OBJECTIVE",
+      "status": "metadata_enum"
+    },
     "1": {
-      "name": "Objective ID 1",
-      "status": "completed_in_save"
+      "name": "BraveTheUnknown",
+      "status": "metadata_enum"
     },
     "2": {
-      "name": "Objective ID 2",
-      "status": "completed_in_save"
+      "name": "ANewDawn",
+      "status": "metadata_enum"
     },
     "3": {
-      "name": "Objective ID 3",
-      "status": "completed_in_save"
+      "name": "BeyondTomorrow",
+      "status": "metadata_enum"
     },
     "4": {
-      "name": "Objective ID 4",
-      "status": "completed_in_save"
+      "name": "EchoesOfTheForgotten",
+      "status": "metadata_enum"
     },
     "5": {
-      "name": "Objective ID 5",
-      "status": "completed_in_save"
-    },
-    "7": {
-      "name": "Objective ID 7",
-      "status": "completed_in_save"
+      "name": "TheEnd",
+      "status": "metadata_enum"
     },
     "6": {
-      "name": "Objective ID 6",
-      "status": "completed_in_save"
+      "name": "WhispersOfBrimstone",
+      "status": "metadata_enum"
+    },
+    "7": {
+      "name": "VisionsOfStarlight",
+      "status": "metadata_enum"
     },
     "8": {
-      "name": "Objective ID 8",
-      "status": "completed_in_save"
+      "name": "ThePact",
+      "status": "metadata_enum"
+    },
+    "9": {
+      "name": "BeyondGoodAndEvil",
+      "status": "metadata_enum"
     }
   },
   "teleports": {
     "0": {
-      "name": "Teleport ID 0",
-      "status": "discovered_in_save"
+      "name": "BurningHells",
+      "status": "metadata_save_flag"
+    },
+    "1": {
+      "name": "HighHeavens",
+      "status": "metadata_save_flag"
+    },
+    "2": {
+      "name": "ShadowPlanes",
+      "status": "metadata_save_flag"
     }
   },
   "meta_perks": {
-    "Page_1": {
-      "name": "Page_1",
-      "status": "observed_page",
-      "raw": [
-        41,
-        18,
-        0,
-        33,
-        34,
-        23,
-        79,
-        25,
-        80,
-        27,
-        58,
-        21,
-        45,
-        50,
-        60,
-        61,
-        81,
-        86,
-        88,
-        90,
-        91,
-        62,
-        51,
-        46,
-        24,
-        42,
-        43,
-        92,
-        37,
-        40
-      ]
+    "0": {
+      "name": "Meta Perk ID 0",
+      "status": "placeholder"
     }
   }
 }

@@ -22,6 +22,15 @@ struct Args {
     bool no_pause = false;
 };
 
+struct RouteSpec {
+    std::string key;
+    std::string label;
+    std::string name;
+    std::vector<int> completion_boss_ids;
+    std::vector<int> entry_boss_ids;
+    std::string source;
+};
+
 static std::string get_env(const char* name) {
     const char* v = std::getenv(name);
     return v ? std::string(v) : std::string();
@@ -49,6 +58,9 @@ static std::vector<fs::path> candidate_roots() {
     auto user = get_env("USERPROFILE");
     auto appdata = get_env("APPDATA");
     if (!user.empty()) {
+        // The normal Steam/Unity location, supplied by the user:
+        // C:\Users\jorda\AppData\LocalLow\RubyDev\Tiny Rogues
+        roots.push_back(fs::path(user) / "AppData" / "LocalLow" / "RubyDev" / "Tiny Rogues");
         roots.push_back(fs::path(user) / "AppData" / "LocalLow");
         roots.push_back(fs::path(user) / "AppData" / "Local");
         roots.push_back(fs::path(user) / "Documents");
@@ -65,6 +77,12 @@ static std::vector<fs::path> candidate_roots() {
 static std::string auto_locate_save() {
     for (const auto& root : candidate_roots()) {
         if (!fs::exists(root)) continue;
+        if (fs::is_directory(root)) {
+            for (const auto& name : {"Public_Slot1_Save1.json", "Public_Slot1_Save2.json", "Public_Slot1_Save3.json"}) {
+                fs::path direct = root / name;
+                if (looks_like_tiny_rogues_save(direct)) return direct.string();
+            }
+        }
         std::error_code ec;
         fs::recursive_directory_iterator it(root, fs::directory_options::skip_permission_denied, ec), end;
         size_t visited = 0;
@@ -98,6 +116,18 @@ static int as_int(const json& j, const std::string& key, int fallback=0) {
     return j[key].get<int>();
 }
 
+static std::vector<int> json_int_vector(const json& j) {
+    std::vector<int> out;
+    if (!j.is_array()) return out;
+    for (const auto& v : j) if (v.is_number_integer()) out.push_back(v.get<int>());
+    return out;
+}
+
+static bool contains_any(const std::set<int>& haystack, const std::vector<int>& needles) {
+    for (int n : needles) if (haystack.count(n)) return true;
+    return false;
+}
+
 static std::string join_ints(const std::vector<int>& values) {
     if (values.empty()) return "-";
     std::ostringstream ss;
@@ -108,9 +138,39 @@ static std::string join_ints(const std::vector<int>& values) {
     return ss.str();
 }
 
+static std::string join_names_for_ids(const json& ids, const std::vector<int>& values) {
+    if (values.empty()) return "-";
+    std::ostringstream ss;
+    for (size_t i = 0; i < values.size(); ++i) {
+        if (i) ss << ", ";
+        ss << lookup_name(ids, "bosses", values[i], "Boss ID") << " (" << values[i] << ")";
+    }
+    return ss.str();
+}
+
+static std::vector<RouteSpec> load_routes(const json& ids) {
+    std::vector<RouteSpec> routes;
+    const std::vector<std::string> order = {"heaven", "hell", "law"};
+    if (!ids.contains("routes") || !ids["routes"].is_object()) return routes;
+    for (const auto& key : order) {
+        if (!ids["routes"].contains(key) || !ids["routes"][key].is_object()) continue;
+        const auto& r = ids["routes"][key];
+        RouteSpec spec;
+        spec.key = key;
+        spec.label = r.value("label", key);
+        spec.name = r.value("name", spec.label);
+        spec.source = r.value("source", std::string());
+        spec.completion_boss_ids = json_int_vector(r.value("completion_boss_ids", json::array()));
+        spec.entry_boss_ids = json_int_vector(r.value("entry_boss_ids", json::array()));
+        if (!spec.completion_boss_ids.empty()) routes.push_back(spec);
+    }
+    return routes;
+}
+
 static std::string build_report(const json& save, const json& ids, const std::string& save_path) {
     const auto runs = save.value("RunRecords", json::array());
     const auto streaks = save.value("CinderStreakHistory", json::array());
+    const auto routes = load_routes(ids);
 
     std::set<int> class_ids;
     for (size_t i = 0; i < streaks.size(); ++i) class_ids.insert(static_cast<int>(i));
@@ -123,12 +183,12 @@ static std::string build_report(const json& save, const json& ids, const std::st
         int recent_runs = 0;
         int recent_max_cinder = -1;
         int recent_max_floor = -1;
-        int route_candidate_max_cinder = -1;
-        std::map<int,int> route_candidate_bosses;
+        std::map<std::string,int> route_max;
+        std::map<std::string,int> route_kills;
     };
     std::map<int, Row> rows;
     std::set<int> cinders;
-    std::set<int> route_candidates = {19,21,22,23,24};
+    std::set<int> all_bosses_seen;
 
     for (int cid : class_ids) {
         if (cid >= 0 && cid < static_cast<int>(streaks.size()) && streaks[cid].is_object()) {
@@ -136,7 +196,12 @@ static std::string build_report(const json& save, const json& ids, const std::st
             rows[cid].death_kills = as_int(streaks[cid], "deathKills", 0);
             rows[cid].mega_death_kills = as_int(streaks[cid], "megaDeathKills", 0);
         }
+        for (const auto& route : routes) {
+            rows[cid].route_max[route.key] = -1;
+            rows[cid].route_kills[route.key] = 0;
+        }
     }
+
     for (const auto& r : runs) {
         if (!r.is_object() || !r.contains("PlayedClass")) continue;
         int cid = r["PlayedClass"].get<int>();
@@ -147,49 +212,66 @@ static std::string build_report(const json& save, const json& ids, const std::st
         row.recent_runs++;
         row.recent_max_cinder = std::max(row.recent_max_cinder, cinder);
         row.recent_max_floor = std::max(row.recent_max_floor, floor);
+
+        std::set<int> bosses;
         if (r.contains("bossesKilled") && r["bossesKilled"].is_array()) {
-            bool routeish = false;
             for (const auto& b : r["bossesKilled"]) {
                 if (!b.is_number_integer()) continue;
                 int bid = b.get<int>();
-                if (route_candidates.count(bid)) {
-                    row.route_candidate_bosses[bid]++;
-                    routeish = true;
-                }
+                bosses.insert(bid);
+                all_bosses_seen.insert(bid);
             }
-            if (routeish) row.route_candidate_max_cinder = std::max(row.route_candidate_max_cinder, cinder);
+        }
+        for (const auto& route : routes) {
+            if (contains_any(bosses, route.completion_boss_ids)) {
+                row.route_kills[route.key]++;
+                row.route_max[route.key] = std::max(row.route_max[route.key], cinder);
+            }
         }
     }
 
     std::ostringstream out;
-    out << "Tiny Rogues Tracker v1\n";
+    out << "Tiny Rogues Tracker v2\n";
     out << "======================\n\n";
     out << "Save: " << save_path << "\n";
     out << "Save time: " << save.value("TimeOfSave", std::string("unknown")) << "\n";
     out << "Run records: " << runs.size() << "\n";
     out << "CinderStreakHistory entries: " << streaks.size() << "\n";
-    out << "Recent cinder levels: " << join_ints(std::vector<int>(cinders.begin(), cinders.end())) << "\n\n";
+    out << "Recent cinder levels: " << join_ints(std::vector<int>(cinders.begin(), cinders.end())) << "\n";
+    out << "ID mapping: " << ids.value("provenance", json::object()).value("status", std::string("unknown")) << "\n\n";
 
-    out << std::left << std::setw(24) << "Character" << std::right
-        << std::setw(10) << "Death Max" << std::setw(12) << "Death Kills"
-        << std::setw(12) << "MegaDeath" << std::setw(12) << "Run Max"
-        << std::setw(12) << "Max Floor" << std::setw(14) << "Route? Max" << "\n";
-    out << std::string(96, '-') << "\n";
+    out << std::left << std::setw(18) << "Character" << std::right
+        << std::setw(8) << "Death" << std::setw(8) << "Heaven" << std::setw(8) << "Hell" << std::setw(8) << "Law"
+        << std::setw(8) << "Runs" << std::setw(8) << "Floor" << "\n";
+    out << std::string(66, '-') << "\n";
     for (int cid : class_ids) {
         const auto& row = rows[cid];
         std::string name = lookup_name(ids, "characters", cid, "Class ID");
-        out << std::left << std::setw(24) << name.substr(0, 23) << std::right
-            << std::setw(10) << row.death_max
-            << std::setw(12) << row.death_kills
-            << std::setw(12) << row.mega_death_kills
-            << std::setw(12) << (row.recent_max_cinder < 0 ? 0 : row.recent_max_cinder)
-            << std::setw(12) << (row.recent_max_floor < 0 ? 0 : row.recent_max_floor)
-            << std::setw(14) << (row.route_candidate_max_cinder < 0 ? 0 : row.route_candidate_max_cinder)
+        auto route_val = [&](const std::string& key) {
+            auto it = row.route_max.find(key);
+            return (it == row.route_max.end() || it->second < 0) ? 0 : it->second;
+        };
+        out << std::left << std::setw(18) << name.substr(0, 17) << std::right
+            << std::setw(8) << row.death_max
+            << std::setw(8) << route_val("heaven")
+            << std::setw(8) << route_val("hell")
+            << std::setw(8) << route_val("law")
+            << std::setw(8) << row.recent_runs
+            << std::setw(8) << (row.recent_max_floor < 0 ? 0 : row.recent_max_floor)
             << "\n";
     }
-    out << "\nRoute note: Death clears come from CinderStreakHistory. Heaven/Hell/Law labels are unresolved unless ids.json is updated with boss/route mappings.\n";
-    out << "Candidate deep-route/final boss IDs currently tracked: 19,21,22,23,24.\n";
-    out << "\nThis tool is read-only. It never writes to the save file.\n";
+
+    out << "\nRoute decoding\n";
+    out << "--------------\n";
+    out << "Death: uses CinderStreakHistory highestUsedCinderThisRun/deathKills, backed by boss ID 18 (" << lookup_name(ids, "bosses", 18, "Boss ID") << ").\n";
+    for (const auto& route : routes) {
+        out << route.label << ": completion boss IDs " << join_names_for_ids(ids, route.completion_boss_ids);
+        if (!route.entry_boss_ids.empty()) out << "; entry/paired boss IDs " << join_names_for_ids(ids, route.entry_boss_ids);
+        out << ".\n";
+        if (!route.source.empty()) out << "  Source: " << route.source << "\n";
+    }
+    out << "\nObserved boss IDs in recent runs: " << join_ints(std::vector<int>(all_bosses_seen.begin(), all_bosses_seen.end())) << "\n";
+    out << "\nThis tool is read-only. It never writes to the Tiny Rogues save file. It writes only the report path you choose.\n";
     return out.str();
 }
 
