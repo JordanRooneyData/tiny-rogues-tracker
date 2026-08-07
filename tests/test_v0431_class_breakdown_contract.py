@@ -28,7 +28,7 @@ def run(floor_reached, bosses=None, cinder=0, cls=0):
 
 
 def test_version_is_0431():
-    assert __version__ == "0.4.3.1"
+    assert __version__ == "0.4.4"
 
 
 def test_sfm_mini_table_numeric_sort_cycle_and_selection_sets_are_independent():
@@ -66,7 +66,7 @@ def test_class_breakdown_modes_and_row_labels_contract_source():
     assert "Class Breakdown" in gui
     assert "DEATHS_MODE" in gui
     assert "FLOORS_COMPLETED_MODE" in gui
-    assert "show_matrix(combo.currentData(), mode.currentText())" in gui
+    assert "self.show_matrix(cid, m.currentText())" in gui
     assert "self._table_page(VIEW_CLASS_BREAKDOWN)" in gui
     assert "Class Breakdown —" not in gui
     assert DEATHS_MILESTONES == [

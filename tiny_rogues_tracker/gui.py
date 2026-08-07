@@ -46,12 +46,12 @@ try:
     from PySide6.QtCore import Qt, QTimer
     from PySide6.QtGui import QAction, QColor
     from PySide6.QtWidgets import (
-        QApplication, QFileDialog, QHBoxLayout, QHeaderView, QLabel, QMainWindow,
+        QApplication, QFileDialog, QGridLayout, QHBoxLayout, QHeaderView, QLabel, QMainWindow,
         QMenu, QMessageBox, QPushButton, QStackedWidget, QTableWidget,
         QTableWidgetItem, QVBoxLayout, QWidget, QComboBox, QButtonGroup,
     )
 except Exception:  # pragma: no cover
-    Qt = QTimer = QAction = QColor = QApplication = QFileDialog = QHBoxLayout = QHeaderView = QLabel = QMainWindow = QMenu = QMessageBox = QPushButton = QStackedWidget = QTableWidget = QTableWidgetItem = QVBoxLayout = QWidget = QComboBox = QButtonGroup = None
+    Qt = QTimer = QAction = QColor = QApplication = QFileDialog = QGridLayout = QHBoxLayout = QHeaderView = QLabel = QMainWindow = QMenu = QMessageBox = QPushButton = QStackedWidget = QTableWidget = QTableWidgetItem = QVBoxLayout = QWidget = QComboBox = QButtonGroup = None
 
 
 class SortableTable(QTableWidget):
@@ -296,6 +296,10 @@ class TrackerApp(QMainWindow):
         self.setStyleSheet(f"""
         QMainWindow, QWidget {{ background: {PALETTE['void_black']}; color: {PALETTE['moon_white']}; font-size: 13px; }}
         QPushButton {{ background: {PALETTE['royal_indigo']}; border: 1px solid {PALETTE['castle_purple']}; padding: 8px; border-radius: 5px; }}
+        QPushButton#PrimaryAction {{ background: {PALETTE['royal_indigo']}; border: 2px solid {PALETTE['hot_magenta']}; padding: 14px; border-radius: 7px; font-size: 17px; font-weight: bold; }}
+        QPushButton#UtilityAction {{ background: {PALETTE['midnight_navy']}; border: 1px solid {PALETTE['deep_violet']}; color: {PALETTE['zero']}; padding: 7px; border-radius: 5px; font-size: 12px; }}
+        QPushButton#ClassGridButton {{ background: {PALETTE['midnight_navy']}; border: 1px solid {PALETTE['castle_purple']}; padding: 10px; border-radius: 6px; min-width: 145px; min-height: 48px; text-align: left; }}
+        QLabel#SectionLabel {{ font-size: 15px; font-weight: bold; color: {PALETTE['heaven_ice']}; margin-top: 12px; }}
         QPushButton:hover {{ border: 1px solid {PALETTE['moon_white']}; }}
         QPushButton:checked {{ background: {PALETTE['rare_gold']}; color: {PALETTE['void_black']}; border: 2px solid {PALETTE['moon_white']}; font-weight: bold; }}
         QTableWidget {{ background: {PALETTE['midnight_navy']}; alternate-background-color: {PALETTE['void_black']}; gridline-color: {PALETTE['deep_violet']}; }}
@@ -322,23 +326,40 @@ class TrackerApp(QMainWindow):
         lab = QLabel(title); lab.setObjectName("Title"); layout.addWidget(lab)
         return w, layout
 
+    def _section_label(self, text: str):
+        label = QLabel(text)
+        label.setObjectName("SectionLabel")
+        return label
+
+    def _make_home_button(self, text: str, callback, role: str):
+        button = QPushButton(text)
+        button.setObjectName(role)
+        button.clicked.connect(callback)
+        return button
+
     def _build_home(self):
         w = QWidget(); layout = QVBoxLayout(w)
         title = QLabel(f"{APP_NAME} v{__version__}"); title.setObjectName("Title"); layout.addWidget(title)
         layout.addWidget(QLabel("Read-only Tiny Rogues save viewer. Saves are never modified."))
         layout.addWidget(QLabel(f"Loaded save: {self.save_path or 'None found'}"))
-        browse = QPushButton("Browse / Reload Save")
-        browse.clicked.connect(self._browse_save)
-        layout.addWidget(browse)
-        check_updates = QPushButton("Check for updates")
-        check_updates.clicked.connect(self.manual_check_for_updates)
-        layout.addWidget(check_updates)
-        for label, fn in [(VIEW_CINDER_HIGHSCORES, self.show_records), (VIEW_KILL_COUNTS, self.show_counts), (VIEW_CLASS_BREAKDOWN, self.show_matrix_picker)]:
-            b = QPushButton(label); b.clicked.connect(fn); layout.addWidget(b)
-        export = QPushButton("Export CSV")
-        export.clicked.connect(self._export)
-        layout.addWidget(export)
+        layout.addSpacing(10)
+        layout.addWidget(self._section_label("Primary Actions"))
+        primary_grid = QGridLayout(); primary_grid.setSpacing(12)
+        for col, (label, fn) in enumerate([(VIEW_CINDER_HIGHSCORES, self.show_records), (VIEW_KILL_COUNTS, self.show_counts), (VIEW_CLASS_BREAKDOWN, self.show_matrix_picker)]):
+            primary_grid.addWidget(self._make_home_button(label, fn, "PrimaryAction"), 0, col)
+        layout.addLayout(primary_grid)
+        layout.addSpacing(28)
         layout.addStretch(1)
+        layout.addWidget(self._section_label("Utility Actions"))
+        utility_grid = QGridLayout(); utility_grid.setSpacing(8)
+        utilities = [
+            ("Browse / Reload Save", self._browse_save),
+            ("Check for Updates", self.manual_check_for_updates),
+            ("Export CSV", self._export),
+        ]
+        for col, (label, fn) in enumerate(utilities):
+            utility_grid.addWidget(self._make_home_button(label, fn, "UtilityAction"), 0, col)
+        layout.addLayout(utility_grid)
         self.stack.addWidget(w)
 
     def _browse_save(self):
@@ -424,16 +445,26 @@ class TrackerApp(QMainWindow):
                 table.setItem(r, c, item)
         table.finalize_default_order()
 
+    def _class_grid_columns(self) -> int:
+        return max(3, min(6, max(1, self.width() // 180)))
+
     def show_matrix_picker(self):
         if not self.model: return
         w, layout = self._page(VIEW_CLASS_BREAKDOWN)
-        combo = QComboBox(); [combo.addItem(r.character, r.character_id) for r in self.model.records]
         mode = QComboBox(); mode.addItems([DEATHS_MODE, FLOORS_COMPLETED_MODE])
-        btn = QPushButton("Open Class Breakdown")
-        btn.clicked.connect(lambda: self.show_matrix(combo.currentData(), mode.currentText()))
-        layout.addWidget(QLabel("Choose a class:")); layout.addWidget(combo)
         layout.addWidget(QLabel("Sub-mode:")); layout.addWidget(mode)
-        layout.addWidget(btn)
+        layout.addWidget(QLabel("Choose a class:"))
+        grid = QGridLayout(); grid.setSpacing(8)
+        records = sorted(self.model.records, key=lambda r: r.character.lower())
+        columns = self._class_grid_columns()
+        for index, record in enumerate(records):
+            button = QPushButton(f"□  {record.character}")
+            button.setObjectName("ClassGridButton")
+            button.setMinimumSize(150, 52)
+            button.clicked.connect(lambda checked=False, cid=record.character_id, m=mode: self.show_matrix(cid, m.currentText()))
+            grid.addWidget(button, index // columns, index % columns)
+        layout.addLayout(grid)
+        layout.addStretch(1)
         self.stack.addWidget(w); self.stack.setCurrentWidget(w)
 
     def show_matrix(self, cid, mode=DEATHS_MODE):

@@ -34,16 +34,16 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: TinyRoguesTracker-v0.4.3.1-windows
+          name: TinyRoguesTracker-v0.4.4-windows
           path: |
-            dist/TinyRoguesTracker-v0.4.3.1.exe
-            dist/installer/TinyRoguesTracker-v0.4.3.1-Setup.exe
+            dist/TinyRoguesTracker-v0.4.4.exe
+            dist/installer/TinyRoguesTracker-v0.4.4-Setup.exe
             scripts/install_latest.ps1
       - name: Publish tagged GitHub Release artifacts
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/TinyRoguesTracker-v0.4.3.1.exe
-            dist/installer/TinyRoguesTracker-v0.4.3.1-Setup.exe
+            dist/TinyRoguesTracker-v0.4.4.exe
+            dist/installer/TinyRoguesTracker-v0.4.4-Setup.exe
             scripts/install_latest.ps1
