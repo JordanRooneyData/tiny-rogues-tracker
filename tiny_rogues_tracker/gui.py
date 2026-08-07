@@ -21,7 +21,7 @@ from .core import (
     VIEW_KILL_COUNTS,
     VIEW_CLASS_BREAKDOWN,
 )
-from .updater import check_async, download_and_launch_installer
+from .updater import UpdateInfo, check_async, check_latest_release, download_and_launch_installer
 
 # User-facing view labels: Cinder Highscores, Kill Counts, Class Breakdown.
 PALETTE = {
@@ -251,6 +251,7 @@ class TrackerApp(QMainWindow):
         self.model = None
         self.current_selection = CinderSelection.all()
         self.cinder_anchor: int | None = None
+        self.update_check_started = False
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
         self._apply_style()
@@ -295,6 +296,9 @@ class TrackerApp(QMainWindow):
         browse = QPushButton("Browse / Reload Save")
         browse.clicked.connect(self._browse_save)
         layout.addWidget(browse)
+        check_updates = QPushButton("Check for updates")
+        check_updates.clicked.connect(self.manual_check_for_updates)
+        layout.addWidget(check_updates)
         for label, fn in [(VIEW_CINDER_HIGHSCORES, self.show_records), (VIEW_KILL_COUNTS, self.show_counts), (VIEW_CLASS_BREAKDOWN, self.show_matrix_picker)]:
             b = QPushButton(label); b.clicked.connect(fn); layout.addWidget(b)
         export = QPushButton("Export CSV")
@@ -410,17 +414,57 @@ class TrackerApp(QMainWindow):
         table.finalize_default_order()
 
     def _check_updates(self):
-        def done(info, err):
+        """Run the normal startup update check once per launch without blocking startup."""
+        if self.update_check_started:
+            return
+        self.update_check_started = True
+        def done(info: UpdateInfo | None, err: Exception | None):
             if info:
-                QTimer.singleShot(0, lambda: self._offer_update(info))
+                QTimer.singleShot(0, lambda: self._offer_update(info, manual=False))
+            elif err:
+                QTimer.singleShot(0, lambda: self.statusBar().showMessage(f"Update check failed; running current version. {err}", 8000))
         check_async(done)
 
-    def _offer_update(self, info):
-        box = QMessageBox(self); box.setWindowTitle("Update available"); box.setText(f"Tiny Rogues Tracker {info.latest_version} is available.")
-        box.setInformativeText(info.html_url); box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        if box.exec() == QMessageBox.Yes:
-            try: download_and_launch_installer(info); QApplication.quit()
-            except Exception as exc: QMessageBox.warning(self, "Update failed", str(exc))
+    def manual_check_for_updates(self):
+        """Visible manual Check for updates action using the same installer path."""
+        try:
+            info = check_latest_release()
+        except Exception as exc:
+            QMessageBox.information(self, "Update check failed", f"Could not check for updates. The current version will keep running.\n\n{exc}")
+            return
+        if info:
+            self._offer_update(info, manual=True)
+        else:
+            QMessageBox.information(self, "Tiny Rogues Tracker is up to date", f"Installed version: {__version__}\nNo newer public release was found.")
+
+    def _offer_update(self, info: UpdateInfo, manual: bool = False):
+        box = QMessageBox(self)
+        box.setWindowTitle("Tiny Rogues Tracker update available")
+        box.setIcon(QMessageBox.Information)
+        box.setText(f"Update available: {info.current_version} → {info.latest_version}")
+        details = [f"Installed version: {info.current_version}", f"Available version: {info.latest_version}"]
+        if info.summary:
+            details.append("")
+            details.append(info.summary)
+        if info.html_url:
+            details.append("")
+            details.append(info.html_url)
+        if not info.asset_url:
+            details.append("")
+            details.append("No Windows installer asset was found; this update cannot be installed automatically yet.")
+        box.setInformativeText("\n".join(details))
+        update_button = box.addButton("Update now", QMessageBox.AcceptRole)
+        skip_button = box.addButton("Skip for now", QMessageBox.RejectRole)
+        box.setDefaultButton(update_button if info.asset_url else skip_button)
+        box.exec()
+        if box.clickedButton() != update_button or not info.asset_url:
+            return
+        try:
+            download_and_launch_installer(info)
+        except Exception as exc:
+            QMessageBox.information(self, "Update failed", f"The update could not be installed automatically. The current version will keep running.\n\n{exc}")
+            return
+        QApplication.quit()
 
 
 def main(argv: list[str] | None = None) -> int:

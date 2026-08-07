@@ -26,8 +26,8 @@ def save_with_runs(runs, streaks_len=36):
     return {"TimeOfSave": "test", "RunRecords": runs, "CinderStreakHistory": [{} for _ in range(streaks_len)]}
 
 
-def test_version_is_041():
-    assert __version__ == "0.4.1"
+def test_version_is_042():
+    assert __version__ == "0.4.2"
 
 
 def test_blank_save_filter_and_single_nonblank_auto_selection(tmp_path):

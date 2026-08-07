@@ -1,8 +1,8 @@
-# Tiny Rogues Tracker v0.4.1
+# Tiny Rogues Tracker v0.4.2
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.1 includes
+## What v0.4.2 includes
 
 - Focused GUI/functionality correction release on top of the previous desktop GUI release.
 - Renamed views:
@@ -25,7 +25,8 @@ Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 - Screenshot Friendly Mode (`SFM`) now has a three-state flow: normal table → row/column selection → compact screenshot table.
 - Zero values are faded but legible; Rare Gold highlights and route-specific colour rules still take precedence.
 - Historical-clear reconciliation: detailed `RunRecords` are the source for route/floor analysis, while `CinderStreakHistory` can add a minimum historical Death-clear/run where retained detailed runs are missing. The app does not fabricate route, floor, or Win+ details from history-only data.
-- Lightweight asynchronous GitHub Releases update check; offline failures do not block startup.
+- Working in-app auto-update flow: every normal GUI launch checks GitHub Releases once, compares semantic versions, prompts with **Update now** / **Skip for now**, downloads the `TinyRoguesTracker-vX.Y.Z-Setup.exe` Inno installer, launches it in update mode, and exits cleanly. Offline/check failures are non-blocking.
+- Manual **Check for updates** button uses the same installer path as the startup check.
 
 ## Run from source on Windows
 
@@ -46,7 +47,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.1.exe
+dist\TinyRoguesTracker-v0.4.2.exe
 ```
 
 ## Installer
@@ -67,19 +68,19 @@ It does not install mutable files into the Steam/game directory.
 
 ## Bootstrap/update path
 
-For public GitHub Releases, the bootstrap script is:
-
-```powershell
-scripts\install_latest.ps1
-```
-
-The app checks this release endpoint asynchronously on startup:
+The main update mechanism is in-app auto-update. On every normal GUI launch the app checks this public GitHub Releases endpoint once with a short timeout:
 
 ```text
 https://api.github.com/repos/JordanRooneyData/tiny-rogues-tracker/releases/latest
 ```
 
-If a newer release exists, the user is offered an opt-in update. The app downloads the release installer, launches it, and exits cleanly rather than replacing a running executable.
+If a newer stable release exists, the app shows a small prompt with installed/available versions and release-note summary. **Update now** downloads the matching Inno installer asset, preferring `TinyRoguesTracker-vX.Y.Z-Setup.exe`, verifies that it is a non-empty Windows executable, launches the installer with per-user upgrade arguments, and exits. The installer keeps the stable `AppId`, reuses `%LOCALAPPDATA%\TinyRoguesTracker`, preserves user settings/config files under that directory, and relaunches the app after installation.
+
+The fallback/bootstrap script remains:
+
+```powershell
+scripts\install_latest.ps1
+```
 
 ## GitHub Actions release workflow
 
@@ -95,7 +96,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.1`.
+7. Publishes artifacts for tagged releases like `v0.4.2`.
 
 ## Development validation
 
