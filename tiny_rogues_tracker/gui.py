@@ -15,6 +15,8 @@ from .core import (
     format_cinder,
     load_ids,
     sort_key,
+    DEATHS_MODE,
+    FLOORS_COMPLETED_MODE,
     view3_frontier_highlights,
     VIEW_CINDER_HIGHSCORES,
     VIEW_KILL_COUNTS,
@@ -63,6 +65,10 @@ class SortableTable(QTableWidget):
         self.default_snapshot: list[list[QTableWidgetItem]] = []
         self.default_vertical_headers: list[str] = []
         self.default_widths: list[int] = []
+        self.compact_snapshot: list[list[QTableWidgetItem]] = []
+        self.compact_headers: list[str] = []
+        self.compact_vertical_headers: list[str] = []
+        self.compact_widths: list[int] = []
         self.sfm = SfmTableState()
         self.sfm_button = None
         self.sfm_label = None
@@ -99,7 +105,7 @@ class SortableTable(QTableWidget):
             self.sfm.toggle_col(column)
             self._apply_sfm_highlights()
             return
-        if self.sfm.state != "normal":
+        if self.sfm.state not in ("normal", "compact"):
             return
         if self.sort_column != column:
             self.sort_column = column
@@ -114,7 +120,7 @@ class SortableTable(QTableWidget):
             self._apply_sfm_highlights()
 
     def _header_menu(self, pos):
-        if self.sfm.state != "normal":
+        if self.sfm.state not in ("normal", "compact"):
             return
         col = self.horizontalHeader().logicalIndexAt(pos)
         menu = QMenu(self)
@@ -137,7 +143,12 @@ class SortableTable(QTableWidget):
     def apply_sort(self):
         if not self.default_snapshot:
             self.finalize_default_order()
-        indexed = [(i, row, self.default_vertical_headers[i]) for i, row in enumerate(self.default_snapshot)]
+        compact = self.sfm.state == "compact"
+        source = self.compact_snapshot if compact else self.default_snapshot
+        vheaders = self.compact_vertical_headers if compact else self.default_vertical_headers
+        headers = self.compact_headers if compact else self.base_headers
+        widths = self.compact_widths if compact else self.default_widths
+        indexed = [(i, row, vheaders[i]) for i, row in enumerate(source)]
         if self.sort_direction != 0 and self.sort_column is not None:
             reverse = self.sort_direction == 1
             indexed.sort(key=lambda x: (self._row_sort_value(x[1], self.sort_column), x[0]), reverse=reverse)
@@ -155,25 +166,25 @@ class SortableTable(QTableWidget):
                 indexed = order
         else:
             indexed.sort(key=lambda x: x[0])
-        self._load_snapshot(indexed)
+        self._load_snapshot(indexed, headers, widths)
         self._apply_header_indicators()
 
-    def _load_snapshot(self, indexed):
+    def _load_snapshot(self, indexed, headers: list[str], widths: list[int]):
         self.clearContents()
-        full_cols = len(self.base_headers)
-        self.setColumnCount(full_cols)
-        self.setHorizontalHeaderLabels(self.base_headers)
+        self.setColumnCount(len(headers))
+        self.setHorizontalHeaderLabels(headers)
         self.setRowCount(len(indexed))
         self.setVerticalHeaderLabels([h.replace(" [SFM]", "") for _, _, h in indexed])
         for r, (_, row, _) in enumerate(indexed):
             for c, item in enumerate(row):
                 self.setItem(r, c, item.clone())
-        for c, width in enumerate(self.default_widths):
+        for c, width in enumerate(widths):
             if width > 0:
                 self.setColumnWidth(c, width)
 
     def _apply_header_indicators(self):
-        for c, text in enumerate(self.base_headers or [self.horizontalHeaderItem(i).text() for i in range(self.columnCount())]):
+        headers = self.compact_headers if self.sfm.state == "compact" and self.compact_headers else (self.base_headers or [self.horizontalHeaderItem(i).text() for i in range(self.columnCount())])
+        for c, text in enumerate(headers):
             suffix = ""
             if c == self.sort_column:
                 suffix = " ▼" if self.sort_direction == 1 else (" ▲" if self.sort_direction == 2 else "")
@@ -188,6 +199,12 @@ class SortableTable(QTableWidget):
         if previous == "selection" and self.sfm.state == "compact":
             self._collapse_to_sfm_compact()
         elif previous == "compact" and self.sfm.state == "normal":
+            self.sort_column = None
+            self.sort_direction = 0
+            self.compact_snapshot = []
+            self.compact_headers = []
+            self.compact_vertical_headers = []
+            self.compact_widths = []
             self.apply_sort()
             if self.scroll_row >= 0:
                 self.scrollToItem(self.item(min(self.scroll_row, max(0, self.rowCount() - 1)), 0))
@@ -232,9 +249,15 @@ class SortableTable(QTableWidget):
     def _collapse_to_sfm_compact(self):
         rows = sorted(self.sfm.selected_rows)
         cols = sorted(self.sfm.selected_cols)
-        data = [[self.item(r, c).clone() if self.item(r, c) else QTableWidgetItem("") for c in cols] for r in rows]
-        headers = [self.base_headers[c] for c in cols]
-        vheaders = [self.verticalHeaderItem(r).text().replace(" [SFM]", "") if self.verticalHeaderItem(r) else str(r + 1) for r in rows]
+        self.compact_headers = [self.base_headers[c] for c in cols]
+        self.compact_vertical_headers = [self.verticalHeaderItem(r).text().replace(" [SFM]", "") if self.verticalHeaderItem(r) else str(r + 1) for r in rows]
+        self.compact_snapshot = [[self.item(r, c).clone() if self.item(r, c) else QTableWidgetItem("") for c in cols] for r in rows]
+        self.compact_widths = [self.columnWidth(c) for c in cols]
+        self.sort_column = None
+        self.sort_direction = 0
+        data = self.compact_snapshot
+        headers = self.compact_headers
+        vheaders = self.compact_vertical_headers
         self.clear()
         self.setRowCount(len(data)); self.setColumnCount(len(headers))
         self.setHorizontalHeaderLabels(headers); self.setVerticalHeaderLabels(vheaders)
@@ -405,14 +428,25 @@ class TrackerApp(QMainWindow):
         if not self.model: return
         w, layout = self._page(VIEW_CLASS_BREAKDOWN)
         combo = QComboBox(); [combo.addItem(r.character, r.character_id) for r in self.model.records]
+        mode = QComboBox(); mode.addItems([DEATHS_MODE, FLOORS_COMPLETED_MODE])
         btn = QPushButton("Open Class Breakdown")
-        btn.clicked.connect(lambda: self.show_matrix(combo.currentData()))
-        layout.addWidget(QLabel("Choose a class:")); layout.addWidget(combo); layout.addWidget(btn)
+        btn.clicked.connect(lambda: self.show_matrix(combo.currentData(), mode.currentText()))
+        layout.addWidget(QLabel("Choose a class:")); layout.addWidget(combo)
+        layout.addWidget(QLabel("Sub-mode:")); layout.addWidget(mode)
+        layout.addWidget(btn)
         self.stack.addWidget(w); self.stack.setCurrentWidget(w)
 
-    def show_matrix(self, cid):
-        matrix = self.model.matrix_for_character(int(cid))
-        table = self._table_page(f"{VIEW_CLASS_BREAKDOWN} — {matrix.character}")
+    def show_matrix(self, cid, mode=DEATHS_MODE):
+        matrix = self.model.matrix_for_character(int(cid), mode)
+        table = self._table_page(VIEW_CLASS_BREAKDOWN)
+        table.parentWidget().layout().insertWidget(2, QLabel(f"Class: {matrix.character} | Mode: {matrix.mode}"))
+        switch = QHBoxLayout()
+        deaths = QPushButton(DEATHS_MODE); deaths.setCheckable(True); deaths.setChecked(matrix.mode == DEATHS_MODE)
+        floors = QPushButton(FLOORS_COMPLETED_MODE); floors.setCheckable(True); floors.setChecked(matrix.mode == FLOORS_COMPLETED_MODE)
+        deaths.clicked.connect(lambda: self.show_matrix(cid, DEATHS_MODE))
+        floors.clicked.connect(lambda: self.show_matrix(cid, FLOORS_COMPLETED_MODE))
+        switch.addWidget(QLabel("Sub-mode:")); switch.addWidget(deaths); switch.addWidget(floors); switch.addStretch(1)
+        table.parentWidget().layout().insertLayout(3, switch)
         table.setColumnCount(len(matrix.cinders)); table.setHorizontalHeaderLabels([f"C{c}" for c in matrix.cinders])
         table.setRowCount(len(matrix.milestones)); table.setVerticalHeaderLabels(matrix.milestones)
         hi = view3_frontier_highlights(matrix)

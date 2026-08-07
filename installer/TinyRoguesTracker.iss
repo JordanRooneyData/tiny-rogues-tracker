@@ -1,19 +1,19 @@
 #define MyAppName "Tiny Rogues Tracker"
-#define MyAppVersion "0.4.3"
+#define MyAppVersion "0.4.3.1"
 #define MyAppPublisher "JDollan"
-#define MyAppExeName "TinyRoguesTracker-v0.4.3.exe"
+#define MyAppExeName "TinyRoguesTracker-v0.4.3.1.exe"
 
 [Setup]
 AppId={{B412CE11-FE99-4F12-B724-040040040040}}
 AppName={#MyAppName}
-AppVersion=0.4.3
+AppVersion=0.4.3.1
 AppPublisher={#MyAppPublisher}
 DefaultDirName={localappdata}\TinyRoguesTracker
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 UsePreviousAppDir=yes
 OutputDir=..\dist\installer
-OutputBaseFilename=TinyRoguesTracker-v0.4.3-Setup
+OutputBaseFilename=TinyRoguesTracker-v0.4.3.1-Setup
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=lowest

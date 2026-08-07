@@ -26,8 +26,8 @@ def save_with_runs(runs, streaks_len=36):
     return {"TimeOfSave": "test", "RunRecords": runs, "CinderStreakHistory": [{} for _ in range(streaks_len)]}
 
 
-def test_version_is_043():
-    assert __version__ == "0.4.3"
+def test_version_is_0431():
+    assert __version__ == "0.4.3.1"
 
 
 def test_blank_save_filter_and_single_nonblank_auto_selection(tmp_path):
@@ -101,7 +101,7 @@ def test_view3_dual_frontier_highlighting():
     model = analyze_save(SAMPLE, IDS)
     matrix = model.matrix_for_character("Druid")
     highlights = view3_frontier_highlights(matrix)
-    assert (12, "12 (Win+)") in highlights
+    assert (12, "Win+") in highlights
 
 
 def test_historical_clear_without_retained_runs_is_truthful_not_zero():

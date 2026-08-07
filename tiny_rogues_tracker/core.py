@@ -219,6 +219,12 @@ class MatrixModel:
     milestones: list[str]
     cinders: list[int]
     cells: dict[tuple[int, str], MatrixCell]
+    mode: str = "Deaths"
+
+DEATHS_MODE = "Deaths"
+FLOORS_COMPLETED_MODE = "Floors Completed"
+DEATHS_MILESTONES = [str(i) for i in range(1, 10)] + ["10 (Death's Castle)", "11 (Dragon Floor)", "12 (Deity Floor)", "Win+"]
+FLOORS_COMPLETED_MILESTONES = DEATHS_MILESTONES[:-1]
 
 @dataclass
 class TrackerModel:
@@ -298,7 +304,7 @@ class TrackerModel:
                     out.add((r.character, col))
         return out
 
-    def matrix_for_character(self, character: str | int) -> MatrixModel:
+    def matrix_for_character(self, character: str | int, mode: str = DEATHS_MODE) -> MatrixModel:
         if isinstance(character, str) and not character.isdigit():
             cid = next((r.character_id for r in self.records if r.character == character), None)
             if cid is None:
@@ -306,16 +312,22 @@ class TrackerModel:
         else:
             cid = int(character)
         name = character_name(self.ids, cid)
-        milestones = ["0"] + [str(i) for i in range(1, 10)] + ["10 (Death)", "11 (Dragon)", "12 (Win+)"]
+        mode = FLOORS_COMPLETED_MODE if mode == FLOORS_COMPLETED_MODE else DEATHS_MODE
+        milestones = FLOORS_COMPLETED_MILESTONES if mode == FLOORS_COMPLETED_MODE else DEATHS_MILESTONES
         cinders = list(range(17))
         cells = {(c, m): MatrixCell(c, m) for c in cinders for m in milestones}
         for run in self.runs:
             if run.character_id != cid or run.cinder not in cinders:
                 continue
-            label = run.top_floor.label
-            cells[(run.cinder, label)].count += 1
-            cells[(run.cinder, label)].route_boss = run.route_boss
-        return MatrixModel(name, milestones, cinders, cells)
+            if mode == DEATHS_MODE:
+                label = death_mode_label(run)
+                cells[(run.cinder, label)].count += 1
+                cells[(run.cinder, label)].route_boss = run.route_boss
+            else:
+                for label in completed_floor_labels(run):
+                    cells[(run.cinder, label)].count += 1
+                    cells[(run.cinder, label)].route_boss = run.route_boss
+        return MatrixModel(name, milestones, cinders, cells, mode)
 
 class SortState:
     """Stable table sorting: descending -> ascending -> default."""
@@ -398,6 +410,32 @@ def top_floor_beaten(run: dict[str, Any]) -> TopFloor:
     regular = len([b for b in bosses if 0 <= b <= 17])
     rank = max(0, min(9, regular))
     return TopFloor(rank, str(rank), display_entered)
+
+def death_floor_number(run: RunMetric) -> int:
+    """Adjusted recorded run-ending floor, independent of ordinary boss kills."""
+    if run.stored_floor is None:
+        return 1
+    return max(1, min(12, int(run.stored_floor) + 1))
+
+def floor_label(floor: int) -> str:
+    if floor == 10:
+        return "10 (Death's Castle)"
+    if floor == 11:
+        return "11 (Dragon Floor)"
+    if floor == 12:
+        return "12 (Deity Floor)"
+    return str(floor)
+
+def death_mode_label(run: RunMetric) -> str:
+    if run.is_win_plus:
+        return "Win+"
+    return floor_label(death_floor_number(run))
+
+def completed_floor_labels(run: RunMetric) -> list[str]:
+    if run.is_win_plus:
+        return list(FLOORS_COMPLETED_MILESTONES)
+    end_floor = death_floor_number(run)
+    return [floor_label(f) for f in range(1, end_floor)]
 
 def parse_run(run: dict[str, Any]) -> RunMetric:
     tf = top_floor_beaten(run)

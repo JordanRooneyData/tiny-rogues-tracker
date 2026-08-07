@@ -6,8 +6,8 @@ from tiny_rogues_tracker.core import CinderSelection, SfmTableState, cinder_sele
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_version_is_043():
-    assert __version__ == "0.4.3"
+def test_version_is_0431():
+    assert __version__ == "0.4.3.1"
 
 
 def test_kill_counts_visible_columns_remove_runs_and_rates_and_use_filter_prefix():
@@ -76,9 +76,8 @@ def test_sfm_compact_and_restore_state_model():
 
 def test_gui_restore_from_authoritative_snapshot_not_mini_table_source():
     gui = (ROOT / "tiny_rogues_tracker" / "gui.py").read_text(encoding="utf-8")
-    assert "full_cols = len(self.base_headers)" in gui
-    assert "self.setColumnCount(full_cols)" in gui
-    assert "self.setHorizontalHeaderLabels(self.base_headers)" in gui
+    assert "self.setColumnCount(len(headers))" in gui
+    assert "self.setHorizontalHeaderLabels(headers)" in gui
     assert "self.default_widths" in gui
     assert "item.setBackground(QColor())" in gui
     assert "if self.sfm.state == \"selection\":" in gui

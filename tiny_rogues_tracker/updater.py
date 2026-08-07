@@ -47,21 +47,24 @@ class UpdateError(RuntimeError):
     """Recoverable updater failure; callers should show a non-blocking message."""
 
 
-def parse_version(value: str) -> tuple[int, int, int, tuple[str, ...]]:
-    """Parse a semantic-ish version robustly, accepting a leading v."""
+def parse_version(value: str) -> tuple[tuple[int, ...], tuple[str, ...]]:
+    """Parse semantic-ish versions with a leading v and any numeric depth."""
     raw = (value or "0.0.0").strip().lstrip("vV")
     main, *suffix = re.split(r"[-+]", raw, maxsplit=1)
-    nums = []
-    for part in main.split(".")[:3]:
+    nums: list[int] = []
+    for part in main.split("."):
         m = re.match(r"(\d+)", part)
         nums.append(int(m.group(1)) if m else 0)
-    while len(nums) < 3:
-        nums.append(0)
-    return nums[0], nums[1], nums[2], tuple(suffix)
+    while len(nums) > 1 and nums[-1] == 0:
+        nums.pop()
+    return tuple(nums or [0]), tuple(suffix)
 
 
 def is_newer_version(current: str, remote: str) -> bool:
-    return parse_version(remote)[:3] > parse_version(current)[:3]
+    remote_nums = parse_version(remote)[0]
+    current_nums = parse_version(current)[0]
+    width = max(len(remote_nums), len(current_nums))
+    return remote_nums + (0,) * (width - len(remote_nums)) > current_nums + (0,) * (width - len(current_nums))
 
 
 def select_installer_asset(assets: Iterable[dict], latest_version: str) -> dict | None:
