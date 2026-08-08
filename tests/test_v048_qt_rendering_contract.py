@@ -71,7 +71,7 @@ def count_pixels_close(image, expected_hex, tolerance=38):
 
 
 def test_version_is_048():
-    assert __version__ == "0.5.0"
+    assert __version__ == "0.5.1"
 
 
 def test_selected_column_and_row_headers_visibly_render_yellow_on_qheaderview():
@@ -167,8 +167,8 @@ def test_compact_screenshot_titles_are_large_bold_and_dynamic():
     assert label.text() == "📊 BARBARIAN DEATHS 📊"
     assert label.isVisible()
     assert label.font().bold()
-    assert label.font().pointSize() >= 1
-    assert label.maximumWidth() <= table._table_content_width()
+    assert label.font().pointSize() >= 20
+    assert label.fontMetrics().horizontalAdvance(label.text()) <= label.maximumWidth()
     assert "text-align: center" in label.styleSheet()
     table.toggle_sfm()
     process()

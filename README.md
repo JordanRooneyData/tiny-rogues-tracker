@@ -1,9 +1,10 @@
-# Tiny Rogues Tracker v0.5.0
+# Tiny Rogues Tracker v0.5.1
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.5.0 includes
+## What v0.5.1 includes
 
+- Compact Screenshot Mode title hotfix: the bold title is kept fully visible at a readable size even when the selected compact table is narrow.
 - Screenshot Friendly Mode compact captures now switch into a dedicated screenshot-only layout: compact table, large fitted title, and one compact **Exit SFM** button.
 - Compact SFM automatically shrinks the app window to the selected table/title and restores the exact previous window geometry/state when leaving compact mode.
 - The yellow SFM selection perimeter is drawn from the actual visible table-content geometry instead of the unused table-widget canvas.
@@ -54,7 +55,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.5.0.exe
+dist\TinyRoguesTracker-v0.5.1.exe
 ```
 
 ## Installer
@@ -103,7 +104,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.5.0`.
+7. Publishes artifacts for tagged releases like `v0.5.1`.
 
 ## Development validation
 

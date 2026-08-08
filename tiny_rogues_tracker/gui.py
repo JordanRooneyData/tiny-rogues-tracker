@@ -287,18 +287,26 @@ class SortableTable(QTableWidget):
         font.setPointSize(24)
         self.compact_title_label.setFont(font)
         self.compact_title_label.setAlignment(Qt.AlignCenter)
-        target_width = max(1, self._table_content_width())
+        table_width = max(1, self._table_content_width())
+        minimum_title_size = 20
         size = 28
         metrics_font = QFont(font)
-        while size > 1:
+        # First keep the title big and determine the width needed to show it whole.
+        metrics_font.setPointSize(minimum_title_size)
+        self.compact_title_label.setFont(metrics_font)
+        minimum_width = self.compact_title_label.fontMetrics().horizontalAdvance(self.compact_title_text) + 20
+        target_width = max(table_width, minimum_width)
+        while size > minimum_title_size:
             metrics_font.setPointSize(size)
-            fm = self.compact_title_label.fontMetrics()
             self.compact_title_label.setFont(metrics_font)
-            fm = self.compact_title_label.fontMetrics()
-            if fm.horizontalAdvance(self.compact_title_text) <= target_width - 12:
+            if self.compact_title_label.fontMetrics().horizontalAdvance(self.compact_title_text) <= target_width - 16:
                 break
             size -= 1
+        metrics_font.setPointSize(size)
+        self.compact_title_label.setFont(metrics_font)
+        title_height = self.compact_title_label.fontMetrics().height() + 10
         self.compact_title_label.setFixedWidth(target_width)
+        self.compact_title_label.setMinimumHeight(title_height)
         self.compact_title_label.setStyleSheet(f"font-size: {size}pt; font-weight: 900; color: {self.compact_title_color}; text-align: center; margin: 2px 0;")
 
     def set_corner_controls(self, *buttons):
@@ -704,8 +712,10 @@ class SortableTable(QTableWidget):
         if not main:
             return
         self._sync_compact_title()
-        table_w = self._table_content_width() + self.frameWidth() * 2 + 24
-        table_h = self._table_content_height() + self.frameWidth() * 2 + 56
+        title_w = self.compact_title_label.width() if self.compact_title_label and self.compact_title_label.isVisible() else 0
+        title_h = self.compact_title_label.sizeHint().height() if self.compact_title_label and self.compact_title_label.isVisible() else 0
+        table_w = max(self._table_content_width(), title_w) + self.frameWidth() * 2 + 32
+        table_h = self._table_content_height() + title_h + self.frameWidth() * 2 + 72
         screen = main.screen() or QApplication.primaryScreen()
         avail = screen.availableGeometry() if screen else QRect(0, 0, 1200, 800)
         target = QSize(min(max(table_w, 320), avail.width()), min(max(table_h, 220), avail.height()))

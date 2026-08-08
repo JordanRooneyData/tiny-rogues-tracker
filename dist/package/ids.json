@@ -3,7 +3,7 @@
   "game": "Tiny Rogues",
   "provenance": {
     "status": "verified_from_il2cpp_metadata_enums_and_native_boss_checks",
-    "note": "v0.5.0 independently revalidated Player.PlayerClassId and Enemies.BossId from the matching IL2CPP global-metadata.dat defaults. Boss route final IDs were validated against native AchievementManager checks; CinderStreakHistory remains a separate namespace with variation/reserved tail slots quarantined.",
+    "note": "v0.5.1 independently revalidated Player.PlayerClassId and Enemies.BossId from the matching IL2CPP global-metadata.dat defaults. Boss route final IDs were validated against native AchievementManager checks; CinderStreakHistory remains a separate namespace with variation/reserved tail slots quarantined.",
     "source_paths": [
       "/root/Dollans cinder tracker files/GameAssembly.dll",
       "/root/Dollans cinder tracker files/global-metadata.dat"

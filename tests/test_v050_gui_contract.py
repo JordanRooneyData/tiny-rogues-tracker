@@ -36,7 +36,7 @@ def build_table(headers=None, ids=None, rows=3):
     app()
     headers = headers or ["Class", "Death", "Win+", "Eden", "Amon", "Primal Death", "Top Floor Beaten"]
     ids = ids or ["class", "best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "top_floor_rank"]
-    table = SortableTable("v0.5.0 table")
+    table = SortableTable("v0.5.1 table")
     table.setColumnCount(len(headers))
     table.setHorizontalHeaderLabels(headers)
     table.set_logical_column_ids(ids)
@@ -148,7 +148,7 @@ def test_compact_mode_hides_chrome_fits_title_and_restores_window_geometry():
     assert table.sfm.state == "compact"
     assert title_row.isVisible()
     assert title.isVisible()
-    assert title.width() == table._table_content_width()
+    assert title.width() >= table._table_content_width()
     assert title.fontMetrics().horizontalAdvance(title.text()) <= title.width()
     assert not heading.isVisible() and not help_text.isVisible() and not exit_selection.isVisible()
     assert win.width() <= 900 and win.height() <= 600
@@ -160,3 +160,36 @@ def test_compact_mode_hides_chrome_fits_title_and_restores_window_geometry():
     gui_source = (Path(__file__).resolve().parents[1] / "tiny_rogues_tracker" / "gui.py").read_text(encoding="utf-8")
     assert "main.saveGeometry()" in gui_source and "main.restoreGeometry(self.normal_window_geometry)" in gui_source
     assert table.normal_window_geometry is None and table.normal_window_state is None
+
+
+def test_compact_title_stays_big_and_fully_visible_when_selected_table_is_narrow():
+    app()
+    win = QMainWindow()
+    page = QWidget()
+    layout = QVBoxLayout(page)
+    sfm = QPushButton("SFM"); sfm.setCheckable(True)
+    help_text = QLabel("help")
+    title_row = QWidget(); title_layout = QVBoxLayout(title_row); title = QLabel(""); title_layout.addWidget(title)
+    table = build_table(headers=["Class"], ids=["class"], rows=1)
+    table.setParent(page)
+    layout.addWidget(sfm); layout.addWidget(help_text); layout.addWidget(title_row); layout.addWidget(table)
+    win.setCentralWidget(page)
+    win.resize(700, 500)
+    win.show(); process()
+
+    text = "🔥 CINDER HIGHSCORES 🔥"
+    table.set_sfm_controls(sfm, help_text)
+    table.set_compact_title_label(title, text, PALETTE["hell_red"])
+    table.set_compact_chrome([sfm, help_text], title_row)
+    table.sfm.press(auto_select_first_col=False)
+    table.sfm.toggle_row(0); table.sfm.toggle_col(0)
+    table.toggle_sfm()
+    process()
+
+    assert table.sfm.state == "compact"
+    assert title.isVisible()
+    assert title.font().bold()
+    assert title.font().pointSize() >= 20
+    assert title.fontMetrics().horizontalAdvance(text) <= title.width()
+    assert title.height() >= title.fontMetrics().height()
+    assert win.width() >= title.width()
