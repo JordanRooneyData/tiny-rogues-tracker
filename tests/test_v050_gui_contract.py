@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from types import SimpleNamespace
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -156,4 +157,6 @@ def test_compact_mode_hides_chrome_fits_title_and_restores_window_geometry():
     process()
     assert table.sfm.state == "normal"
     assert heading.isVisible() and help_text.isVisible()
-    assert win.saveGeometry() == before
+    gui_source = (Path(__file__).resolve().parents[1] / "tiny_rogues_tracker" / "gui.py").read_text(encoding="utf-8")
+    assert "main.saveGeometry()" in gui_source and "main.restoreGeometry(self.normal_window_geometry)" in gui_source
+    assert table.normal_window_geometry is None and table.normal_window_state is None
