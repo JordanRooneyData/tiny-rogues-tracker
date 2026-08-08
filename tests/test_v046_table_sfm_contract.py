@@ -24,7 +24,7 @@ def run(cls, cinder, floor, bosses):
 
 
 def test_version_is_046():
-    assert __version__ == "0.4.7"
+    assert __version__ == "0.4.8"
 
 
 def test_survival_breakdown_totals_column_and_rate_rows_from_current_table_data():
@@ -131,5 +131,5 @@ def test_kill_counts_cinder_anchor_and_divider_border_contract():
     assert "value == self.cinder_anchor" in counts
     assert "setProperty(\"sfmAnchor\", True)" in counts
     assert "Cinder range anchor" in counts
-    assert "table.separator_after_column = 2" in counts
-    assert "┃" not in gui
+    assert "table.logical_separators = [LogicalSeparator(left=(\"Death Kills\", \"Win+ Kills\"), right=(\"Eden Kills\", \"Amon Kills\", \"Primal Death Kills\"))]" in counts
+    assert "divider_columns" in gui

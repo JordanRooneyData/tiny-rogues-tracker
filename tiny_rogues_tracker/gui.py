@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from . import APP_NAME, __version__
@@ -46,26 +47,110 @@ PALETTE = {
 }
 
 try:
-    from PySide6.QtCore import Qt, QTimer
-    from PySide6.QtGui import QAction, QColor, QPen, QPainter
+    from PySide6.QtCore import Qt, QTimer, QRect
+    from PySide6.QtGui import QAction, QColor, QPen, QPainter, QBrush, QFont
     from PySide6.QtWidgets import (
         QApplication, QFileDialog, QGridLayout, QHBoxLayout, QHeaderView, QLabel, QMainWindow,
         QMenu, QMessageBox, QPushButton, QStackedWidget, QTableWidget,
         QTableWidgetItem, QVBoxLayout, QWidget, QButtonGroup, QStyledItemDelegate, QStyleOptionViewItem,
     )
 except Exception:  # pragma: no cover
-    Qt = QTimer = QAction = QColor = QPen = QPainter = QApplication = QFileDialog = QGridLayout = QHBoxLayout = QHeaderView = QLabel = QMainWindow = QMenu = QMessageBox = QPushButton = QStackedWidget = QTableWidget = QTableWidgetItem = QVBoxLayout = QWidget = QButtonGroup = QStyledItemDelegate = QStyleOptionViewItem = None
+    Qt = QTimer = QRect = QAction = QColor = QPen = QPainter = QBrush = QFont = QApplication = QFileDialog = QGridLayout = QHBoxLayout = QHeaderView = QLabel = QMainWindow = QMenu = QMessageBox = QPushButton = QStackedWidget = QTableWidget = QTableWidgetItem = QVBoxLayout = QWidget = QButtonGroup = QStyledItemDelegate = QStyleOptionViewItem = None
+
+
+@dataclass(frozen=True)
+class LogicalSeparator:
+    """A separator boundary resolved from visible logical header names."""
+    before: str | None = None
+    after: str | None = None
+    left: tuple[str, ...] = ()
+    right: tuple[str, ...] = ()
+
+
+def _header_matches(header: str, pattern: str) -> bool:
+    clean = header.replace(" ▲", "").replace(" ▼", "")
+    return clean == pattern or clean.endswith(" " + pattern)
+
+
+def resolve_logical_separators(headers: list[str], separators: list[LogicalSeparator]) -> set[int]:
+    """Return visible column indexes that should draw a right-edge divider."""
+    clean = [h.replace(" ▲", "").replace(" ▼", "") for h in headers]
+    dividers: set[int] = set()
+    for sep in separators:
+        if sep.before:
+            idx = next((i for i, h in enumerate(clean) if _header_matches(h, sep.before)), None)
+            if idx is not None and idx > 0:
+                dividers.add(idx - 1)
+        if sep.after:
+            idx = next((i for i, h in enumerate(clean) if _header_matches(h, sep.after)), None)
+            if idx is not None and idx < len(clean) - 1:
+                dividers.add(idx)
+        if sep.left and sep.right:
+            left_indices = [i for i, h in enumerate(clean) if any(_header_matches(h, p) for p in sep.left)]
+            right_indices = [i for i, h in enumerate(clean) if any(_header_matches(h, p) for p in sep.right)]
+            for left in left_indices:
+                for right in right_indices:
+                    if abs(left - right) == 1:
+                        dividers.add(min(left, right))
+    return dividers
+
+
+def column_order(headers: list[str], reverse: bool, leading: tuple[str, ...] = (), trailing: tuple[str, ...] = ()) -> list[int]:
+    """Reverse unprotected logical columns while keeping declared leading/trailing headers pinned."""
+    protected_leading = [i for i, h in enumerate(headers) if any(_header_matches(h, p) for p in leading)]
+    protected_trailing = [i for i, h in enumerate(headers) if any(_header_matches(h, p) for p in trailing)]
+    protected = set(protected_leading + protected_trailing)
+    middle = [i for i in range(len(headers)) if i not in protected]
+    if reverse:
+        middle = list(reversed(middle))
+    return protected_leading + middle + protected_trailing
+
+
+class SfmHeaderView(QHeaderView):
+    """Paint SFM selection/anchor and logical separators on real QHeaderView sections."""
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+        self.selected_sections: set[int] = set()
+        self.anchor_section: int | None = None
+        self.divider_columns: set[int] = set()
+
+    def set_sfm_marks(self, selected: set[int], anchor: int | None):
+        self.selected_sections = set(selected)
+        self.anchor_section = anchor
+        self.viewport().update()
+
+    def set_divider_columns(self, dividers: set[int]):
+        self.divider_columns = set(dividers)
+        self.viewport().update()
+
+    def paintSection(self, painter: QPainter, rect: QRect, logicalIndex: int):  # pragma: no cover - exercised by Qt rendering tests
+        super().paintSection(painter, rect, logicalIndex)
+        painter.save()
+        if logicalIndex in self.selected_sections:
+            painter.fillRect(rect.adjusted(1, 1, -1, -1), QColor(PALETTE['rare_gold']))
+            painter.setPen(QColor(PALETTE['void_black']))
+            text = self.model().headerData(logicalIndex, self.orientation(), Qt.DisplayRole)
+            painter.drawText(rect.adjusted(4, 2, -4, -2), Qt.AlignCenter, str(text or ""))
+        if logicalIndex == self.anchor_section:
+            pen = QPen(QColor(PALETTE['heaven_cyan']), 3, Qt.DotLine)
+            painter.setPen(pen)
+            painter.setBrush(Qt.NoBrush)
+            painter.drawRect(rect.adjusted(2, 2, -3, -3))
+        if self.orientation() == Qt.Horizontal and logicalIndex in self.divider_columns:
+            painter.setPen(QPen(QColor(PALETTE['rare_gold']), 4))
+            painter.drawLine(rect.topRight(), rect.bottomRight())
+        painter.restore()
 
 
 class ColumnDividerDelegate(QStyledItemDelegate):
-    """Paint a strong shared border after one logical column without modifying cell text."""
-    def __init__(self, divider_column: int | None = None, parent=None):
+    """Paint strong shared borders after logical columns without modifying cell text."""
+    def __init__(self, divider_columns: set[int] | None = None, parent=None):
         super().__init__(parent)
-        self.divider_column = divider_column
+        self.divider_columns = set(divider_columns or set())
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index):
         super().paint(painter, option, index)
-        if self.divider_column is not None and index.column() == self.divider_column:
+        if index.column() in self.divider_columns:
             painter.save()
             painter.setPen(QPen(QColor(PALETTE['rare_gold']), 3))
             painter.drawLine(option.rect.topRight(), option.rect.bottomRight())
@@ -94,8 +179,14 @@ class SortableTable(QTableWidget):
         self.row_order_reversed = False
         self.column_order_reversed = False
         self.auto_select_first_col = True
-        self.separator_after_column: int | None = None
-        self.divider_delegate = ColumnDividerDelegate(None, self)
+        self.logical_separators: list[LogicalSeparator] = []
+        self.protected_leading_headers: list[str] = []
+        self.protected_trailing_headers: list[str] = []
+        self.corner_buttons: tuple[QPushButton, ...] = ()
+        self.compact_title_label = None
+        self.compact_title_text = ""
+        self.compact_title_color = PALETTE['moon_white']
+        self.divider_delegate = ColumnDividerDelegate(set(), self)
         self.setItemDelegate(self.divider_delegate)
         self.sfm = SfmTableState()
         self.sfm_button = None
@@ -104,6 +195,8 @@ class SortableTable(QTableWidget):
         self.scroll_row = 0
         self.scroll_col = 0
         self.setSortingEnabled(False)
+        self.setHorizontalHeader(SfmHeaderView(Qt.Horizontal, self))
+        self.setVerticalHeader(SfmHeaderView(Qt.Vertical, self))
         self.horizontalHeader().sectionClicked.connect(self._header_clicked)
         self.verticalHeader().sectionClicked.connect(self._row_header_clicked)
         self.horizontalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
@@ -122,14 +215,40 @@ class SortableTable(QTableWidget):
             self.sfm_exit_button.clicked.connect(self.exit_sfm_selection)
         self._sync_sfm_controls()
 
+    def set_compact_title_label(self, label, text: str, color: str | None = None):
+        self.compact_title_label = label
+        self.compact_title_text = text
+        self.compact_title_color = color or PALETTE['moon_white']
+        self._sync_compact_title()
+
+    def _sync_compact_title(self):
+        if not self.compact_title_label:
+            return
+        active = self.sfm.state == "compact"
+        self.compact_title_label.setVisible(active)
+        self.compact_title_label.setText(self.compact_title_text if active else "")
+        font = self.compact_title_label.font()
+        font.setBold(True)
+        font.setPointSize(24)
+        self.compact_title_label.setFont(font)
+        self.compact_title_label.setAlignment(Qt.AlignCenter)
+        self.compact_title_label.setStyleSheet(f"font-size: 24pt; font-weight: 900; color: {self.compact_title_color}; text-align: center; margin: 6px 0;")
+
     def set_corner_controls(self, *buttons):
+        self.corner_buttons = tuple(buttons)
+        self._install_corner_controls()
+
+    def _install_corner_controls(self):
+        if not self.corner_buttons:
+            return
         corner = QWidget(self)
         layout = QHBoxLayout(corner)
         layout.setContentsMargins(2, 0, 2, 0)
         layout.setSpacing(2)
-        for button in buttons:
+        for button in self.corner_buttons:
             button.setParent(corner)
             button.setFixedSize(28, 24)
+            button.setVisible(True)
             layout.addWidget(button)
         layout.addStretch(1)
         self.setCornerWidget(corner)
@@ -143,8 +262,9 @@ class SortableTable(QTableWidget):
         for r in range(self.rowCount()):
             self.default_snapshot.append([self.item(r, c).clone() if self.item(r, c) else QTableWidgetItem("") for c in range(self.columnCount())])
         self._apply_header_indicators()
-        self._apply_separator()
+        self._apply_separators()
         self._restore_table_geometry(self.default_widths, self.default_heights)
+        self._install_corner_controls()
 
     def _header_clicked(self, column: int):
         if self.sfm.state == "selection":
@@ -256,7 +376,8 @@ class SortableTable(QTableWidget):
             headers, widths, indexed, bottom, pinned = self._reverse_columns(headers, widths, indexed, bottom, pinned)
         self._load_snapshot(pinned + indexed + bottom, headers, widths)
         self._apply_header_indicators()
-        self._apply_separator()
+        self._apply_separators()
+        self._apply_sfm_highlights()
 
     def _load_snapshot(self, indexed, headers: list[str], widths: list[int]):
         self.clearContents()
@@ -268,10 +389,15 @@ class SortableTable(QTableWidget):
             for c, item in enumerate(row):
                 self.setItem(r, c, item.clone())
         self._restore_table_geometry(widths, self.compact_heights if self.sfm.state == "compact" else self.default_heights)
+        self._install_corner_controls()
 
     def _reverse_columns(self, headers, widths, *groups):
-        start = 1 if headers and headers[0] == "Class" else 0
-        order = list(range(start)) + list(reversed(range(start, len(headers))))
+        order = column_order(
+            headers,
+            True,
+            leading=tuple(self.protected_leading_headers),
+            trailing=tuple(self.protected_trailing_headers),
+        )
         headers = [headers[i] for i in order]
         widths = [widths[i] for i in order]
         out_groups = []
@@ -331,7 +457,9 @@ class SortableTable(QTableWidget):
             self.apply_sort()
             if self.scroll_row >= 0:
                 self.scrollToItem(self.item(min(self.scroll_row, max(0, self.rowCount() - 1)), 0))
+            self._install_corner_controls()
         self._sync_sfm_controls()
+        self._sync_compact_title()
         self._apply_sfm_highlights()
 
     def _sync_sfm_controls(self):
@@ -353,48 +481,44 @@ class SortableTable(QTableWidget):
 
     def _apply_sfm_highlights(self):
         selected_cells = self.sfm.highlighted_cells()
-        self._clear_sfm_header_marks()
+        if self.sfm.state == "selection":
+            self.horizontalHeader().set_sfm_marks(self.sfm.selected_cols, self.sfm.col_anchor)
+            self.verticalHeader().set_sfm_marks(self.sfm.selected_rows, self.sfm.row_anchor)
+        else:
+            self._clear_sfm_header_marks()
         for r in range(self.rowCount()):
             for c in range(self.columnCount()):
                 item = self.item(r, c)
                 if not item:
                     continue
                 item.setBackground(QColor())
-                if (r, c) in selected_cells:
+                if self.sfm.state == "selection" and (r, c) in selected_cells:
                     item.setBackground(QColor(PALETTE['deep_violet']))
-        # SFM selection uses styling/tooltip state only; header text is never mutated.
         if self.sfm.state == "selection":
             for c in range(self.columnCount()):
                 header = self.horizontalHeaderItem(c) or QTableWidgetItem(str(c + 1))
-                if c in self.sfm.selected_cols:
-                    header.setBackground(QColor(PALETTE['deep_violet']))
-                if c == self.sfm.col_anchor:
-                    header.setToolTip("SFM column range anchor")
-                    header.setForeground(QColor(PALETTE['rare_gold']))
+                header.setToolTip("SFM column range anchor" if c == self.sfm.col_anchor else "")
                 self.setHorizontalHeaderItem(c, header)
             for r in range(self.rowCount()):
                 header = self.verticalHeaderItem(r) or QTableWidgetItem(str(r + 1))
-                if r in self.sfm.selected_rows:
-                    header.setBackground(QColor(PALETTE['deep_violet']))
-                if r == self.sfm.row_anchor:
-                    header.setToolTip("SFM row range anchor")
-                    header.setForeground(QColor(PALETTE['rare_gold']))
+                header.setToolTip("SFM row range anchor" if r == self.sfm.row_anchor else "")
                 self.setVerticalHeaderItem(r, header)
 
     def _clear_sfm_header_marks(self):
+        self.horizontalHeader().set_sfm_marks(set(), None)
+        self.verticalHeader().set_sfm_marks(set(), None)
         for c in range(self.columnCount()):
             header = self.horizontalHeaderItem(c)
-            if not header:
-                continue
-            header.setBackground(QColor())
-            header.setToolTip("")
+            if header:
+                header.setBackground(QColor())
+                header.setForeground(QColor())
+                header.setToolTip("")
         for r in range(self.rowCount()):
             header = self.verticalHeaderItem(r)
-            if not header:
-                continue
-            header.setBackground(QColor())
-            header.setForeground(QColor())
-            header.setToolTip("")
+            if header:
+                header.setBackground(QColor())
+                header.setForeground(QColor())
+                header.setToolTip("")
 
     def exit_sfm_selection(self):
         if self.sfm.state == "selection":
@@ -424,6 +548,8 @@ class SortableTable(QTableWidget):
                 self.setItem(r, c, item)
         self._restore_table_geometry(self.compact_widths, self.compact_heights)
         self._fit_compact_geometry()
+        self._apply_separators()
+        self._install_corner_controls()
 
     def _fit_compact_geometry(self):
         self.resizeColumnsToContents()
@@ -448,16 +574,13 @@ class SortableTable(QTableWidget):
         for r in range(self.rowCount()):
             self.setRowHeight(r, min(max(self.rowHeight(r), 22), 32))
 
-    def _apply_separator(self):
-        if self.separator_after_column is None:
-            return
-        left_name = self.base_headers[self.separator_after_column] if self.separator_after_column < len(self.base_headers) else None
-        visible_headers = [self.horizontalHeaderItem(c).text().replace(" ▲", "").replace(" ▼", "") for c in range(self.columnCount())]
-        if left_name not in visible_headers:
-            return
-        c = visible_headers.index(left_name)
-        self.divider_delegate.divider_column = c
+    def _apply_separators(self):
+        headers = [self._clean_header_text(self.horizontalHeaderItem(c).text()) if self.horizontalHeaderItem(c) else str(c + 1) for c in range(self.columnCount())]
+        dividers = resolve_logical_separators(headers, self.logical_separators)
+        self.divider_delegate.divider_columns = dividers
+        self.horizontalHeader().set_divider_columns(dividers)
         self.viewport().update()
+        self.horizontalHeader().viewport().update()
 
 
 
@@ -588,11 +711,12 @@ class TrackerApp(QMainWindow):
         if path:
             export_csv(self.model, path, self.current_selection); QMessageBox.information(self, "Exported", path)
 
-    def _table_page(self, title, back_target=None):
+    def _table_page(self, title, back_target=None, compact_title: str | None = None, compact_color: str | None = None):
         w, layout = self._page(title, back_target=back_target)
         top = QHBoxLayout(); sfm = QPushButton("SFM"); sfm.setCheckable(True); x_sfm = QPushButton("X"); x_sfm.setToolTip("Exit SFM selection without creating a mini-table"); x_sfm.setVisible(False); expl = QLabel("SFM inactive. Press SFM to choose rows and columns for a compact screenshot table.")
         top.addWidget(expl); top.addStretch(1); top.addWidget(sfm); top.addWidget(x_sfm); layout.addLayout(top)
-        table = SortableTable(title); table.set_sfm_controls(sfm, expl, x_sfm); sfm.clicked.connect(table.toggle_sfm); layout.addWidget(table)
+        compact_label = QLabel(""); compact_label.setObjectName("CompactTitle"); compact_label.setVisible(False); layout.addWidget(compact_label)
+        table = SortableTable(title); table.set_sfm_controls(sfm, expl, x_sfm); table.set_compact_title_label(compact_label, compact_title or title.upper(), compact_color); sfm.clicked.connect(table.toggle_sfm); layout.addWidget(table)
         self.stack.addWidget(w); self.stack.setCurrentWidget(w)
         return table
 
@@ -627,9 +751,11 @@ class TrackerApp(QMainWindow):
 
     def show_records(self):
         if not self.model: return
-        table = self._table_page(VIEW_CINDER_HIGHSCORES)
+        table = self._table_page(VIEW_CINDER_HIGHSCORES, compact_title="🔥 CINDER HIGHSCORES 🔥", compact_color=PALETTE['hell_red'])
         headers = ["Class", "Death", "Win+", "Eden", "Amon", "Primal Death", "Top Floor Beaten"]
         table.setColumnCount(len(headers)); table.setHorizontalHeaderLabels(headers); self._style_route_headers(table); table.setRowCount(len(self.model.records))
+        table.protected_leading_headers = ["Class"]
+        table.logical_separators = [LogicalSeparator(before="Top Floor Beaten")]
         gold = self.model.character_record_highlights()
         cols = [None, "best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "top_floor_rank"]
         for r, rec in enumerate(self.model.records):
@@ -670,15 +796,17 @@ class TrackerApp(QMainWindow):
         layout.addWidget(totals_button)
         top = QHBoxLayout(); sfm = QPushButton("SFM"); sfm.setCheckable(True); x_sfm = QPushButton("X"); x_sfm.setToolTip("Exit SFM selection without creating a mini-table"); x_sfm.setVisible(False); expl = QLabel("SFM inactive. Press SFM to choose rows and columns for a compact screenshot table.")
         top.addWidget(expl); top.addStretch(1); top.addWidget(sfm); top.addWidget(x_sfm); layout.addLayout(top)
-        table = SortableTable(VIEW_KILL_COUNTS); table.set_sfm_controls(sfm, expl, x_sfm); sfm.clicked.connect(table.toggle_sfm); layout.addWidget(table)
+        compact_label = QLabel(""); compact_label.setObjectName("CompactTitle"); compact_label.setVisible(False); layout.addWidget(compact_label)
+        table = SortableTable(VIEW_KILL_COUNTS); table.set_sfm_controls(sfm, expl, x_sfm); table.set_compact_title_label(compact_label, "💀 KILL COUNTS 💀", PALETTE['heaven_ice']); sfm.clicked.connect(table.toggle_sfm); layout.addWidget(table)
         self.stack.addWidget(w); self.stack.setCurrentWidget(w)
         rows = self.model.completion_rows(self.current_selection).rows
         display_rows = ([completion_totals(rows)] if self.show_totals else []) + rows
         prefix = self.current_selection.label
         headers = ["Class", f"{prefix} Death Kills", f"{prefix} Win+ Kills", f"{prefix} Eden Kills", f"{prefix} Amon Kills", f"{prefix} Primal Death Kills"]
         table.setColumnCount(len(headers)); table.setHorizontalHeaderLabels(headers); self._style_route_headers(table); table.setRowCount(len(display_rows))
+        table.protected_leading_headers = ["Class"]
+        table.logical_separators = [LogicalSeparator(left=("Death Kills", "Win+ Kills"), right=("Eden Kills", "Amon Kills", "Primal Death Kills"))]
         table.pinned_rows = 1 if self.show_totals else 0
-        table.separator_after_column = 2
         hi = self.model.completion_highlights(self.current_selection)
         fields = [None, "death_clears", "win_plus_clears", "eden_clears", "amon_clears", "primal_death_clears"]
         for r, row in enumerate(display_rows):
@@ -743,7 +871,8 @@ class TrackerApp(QMainWindow):
 
     def show_matrix(self, cid, mode=DEATHS_MODE):
         matrix = self.model.matrix_for_character(cid, mode)
-        table = self._table_page(VIEW_SURVIVAL_BREAKDOWN, back_target=self.survival_picker_widget)
+        compact_title = f"📊 {matrix.character.upper()} {matrix.mode.upper()} 📊"
+        table = self._table_page(VIEW_SURVIVAL_BREAKDOWN, back_target=self.survival_picker_widget, compact_title=compact_title, compact_color=PALETTE['rare_gold'])
         table.auto_select_first_col = False
         layout = table.parentWidget().layout()
         switch = QHBoxLayout()
@@ -762,6 +891,8 @@ class TrackerApp(QMainWindow):
         layout.insertWidget(4, context)
         presentation = matrix_presentation(matrix)
         table.setColumnCount(len(presentation.headers)); table.setHorizontalHeaderLabels(presentation.headers)
+        table.protected_trailing_headers = ["Totals"]
+        table.logical_separators = [LogicalSeparator(before="Totals")]
         table.setRowCount(len(presentation.row_labels)); table.setVerticalHeaderLabels(presentation.row_labels)
         table.fixed_bottom_rows = presentation.fixed_bottom_rows
         hi = view3_frontier_highlights(matrix)

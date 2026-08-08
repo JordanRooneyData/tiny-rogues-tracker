@@ -1,10 +1,10 @@
-# Tiny Rogues Tracker v0.4.7
+# Tiny Rogues Tracker v0.4.8
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.7 includes
+## What v0.4.8 includes
 
-- Focused v0.4.7 correctness release for Survival Breakdown rates, table reversal, compact sizing, Cinder Highscores styling, header context-menu stability, and SFM header selection behaviour.
+- Focused v0.4.8 screenshot/table rendering release: real QHeaderView SFM header highlights, compact screenshot titles, restored reverse controls, and dynamic logical separators.
 - Kill Counts cleanup: removed the `ALL/Cx Runs`, `ALL/Cx Death Kill Rate`, and `ALL/Cx Win+ Rate` columns from the table/export surface.
 - Kill Counts headings now reflect the active filter directly, such as `ALL Death Kills`, `C16 Eden Kills`, and `C10–16 Primal Death Kills`.
 - Cinder filter buttons now show selected state persistently; hover no longer mimics selection, and Shift-click range guidance is displayed beside the filter.
@@ -13,7 +13,7 @@ Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 - SFM first-column auto-selection now applies only when the first column is a class/row-label column; Survival Breakdown no longer auto-selects ordinary data column `C0`.
 - Survival Breakdown tables add a final **Totals** column plus fixed bottom **Death Kill Rate** and **Win+ Rate** rows.
 - Survival Breakdown includes compact row/column reverse controls; fixed rate rows stay pinned at the bottom.
-- Survival Breakdown SFM captures include **Class selected** and **Mode** context labels directly above the table.
+- Compact SFM captures now show large, bold per-view titles such as `📊 BARBARIAN DEATHS 📊`, `🔥 CINDER HIGHSCORES 🔥`, and `💀 KILL COUNTS 💀`.
 - Table sorting/restoration now preserves saved column widths and row heights rather than resizing from mini-table geometry.
 - Kill Counts cinder buttons now show a subtle shift-click range anchor.
 - Kill Counts Win+/Eden divider is painted as a border/delegate rather than inserted text, so it stays aligned through sorting/SFM.
@@ -44,7 +44,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.7.exe
+dist\TinyRoguesTracker-v0.4.8.exe
 ```
 
 ## Installer
@@ -93,7 +93,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.7`.
+7. Publishes artifacts for tagged releases like `v0.4.8`.
 
 ## Development validation
 
