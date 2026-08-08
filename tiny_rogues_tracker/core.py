@@ -20,7 +20,7 @@ VERSION = __version__
 
 VIEW_CINDER_HIGHSCORES = "Cinder Highscores"
 VIEW_KILL_COUNTS = "Kill Counts"
-VIEW_CLASS_BREAKDOWN = "Class Breakdown"
+VIEW_SURVIVAL_BREAKDOWN = "Survival Breakdown"
 
 @dataclass(frozen=True)
 class TopFloor:
@@ -183,6 +183,18 @@ class CompletionTable:
     def by_name(self) -> dict[str, CompletionRow]:
         return {r.character: r for r in self.rows}
 
+def completion_totals(rows: list[CompletionRow]) -> CompletionRow:
+    total = CompletionRow("TOTALS", -1)
+    for row in rows:
+        total.cx_runs += row.cx_runs
+        total.death_clears += row.death_clears
+        total.win_plus_clears += row.win_plus_clears
+        total.eden_clears += row.eden_clears
+        total.amon_clears += row.amon_clears
+        total.primal_death_clears += row.primal_death_clears
+        total.inferred_historical_death_runs += row.inferred_historical_death_runs
+    return total
+
 @dataclass
 class RunMetric:
     character_id: int
@@ -305,19 +317,24 @@ class TrackerModel:
         return out
 
     def matrix_for_character(self, character: str | int, mode: str = DEATHS_MODE) -> MatrixModel:
-        if isinstance(character, str) and not character.isdigit():
+        aggregate = isinstance(character, str) and character.upper() == "ALL"
+        if aggregate:
+            cid = None
+            name = "ALL"
+        elif isinstance(character, str) and not character.isdigit():
             cid = next((r.character_id for r in self.records if r.character == character), None)
             if cid is None:
                 raise KeyError(character)
+            name = character_name(self.ids, cid)
         else:
             cid = int(character)
-        name = character_name(self.ids, cid)
+            name = character_name(self.ids, cid)
         mode = FLOORS_COMPLETED_MODE if mode == FLOORS_COMPLETED_MODE else DEATHS_MODE
         milestones = FLOORS_COMPLETED_MILESTONES if mode == FLOORS_COMPLETED_MODE else DEATHS_MILESTONES
         cinders = list(range(17))
         cells = {(c, m): MatrixCell(c, m) for c in cinders for m in milestones}
         for run in self.runs:
-            if run.character_id != cid or run.cinder not in cinders:
+            if (not aggregate and run.character_id != cid) or run.cinder not in cinders:
                 continue
             if mode == DEATHS_MODE:
                 label = death_mode_label(run)

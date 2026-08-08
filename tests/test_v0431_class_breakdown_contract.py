@@ -28,7 +28,7 @@ def run(floor_reached, bosses=None, cinder=0, cls=0):
 
 
 def test_version_is_0431():
-    assert __version__ == "0.4.4"
+    assert __version__ == "0.4.5"
 
 
 def test_sfm_mini_table_numeric_sort_cycle_and_selection_sets_are_independent():
@@ -63,12 +63,12 @@ def test_gui_sfm_compact_sorting_and_restore_contract_source():
 
 def test_class_breakdown_modes_and_row_labels_contract_source():
     gui = GUI.read_text(encoding="utf-8")
-    assert "Class Breakdown" in gui
+    assert "Survival Breakdown" in gui
     assert "DEATHS_MODE" in gui
     assert "FLOORS_COMPLETED_MODE" in gui
-    assert "self.show_matrix(cid, m.currentText())" in gui
-    assert "self._table_page(VIEW_CLASS_BREAKDOWN)" in gui
-    assert "Class Breakdown —" not in gui
+    assert "self.show_matrix(cid, self.survival_mode)" in gui
+    assert "self._table_page(VIEW_SURVIVAL_BREAKDOWN, back_target=self.survival_picker_widget)" in gui
+    assert "Survival Breakdown —" not in gui
     assert DEATHS_MILESTONES == [
         "1", "2", "3", "4", "5", "6", "7", "8", "9",
         "10 (Death's Castle)", "11 (Dragon Floor)", "12 (Deity Floor)", "Win+",

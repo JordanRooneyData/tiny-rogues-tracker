@@ -1,16 +1,20 @@
-# Tiny Rogues Tracker v0.4.4
+# Tiny Rogues Tracker v0.4.5
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.4 includes
+## What v0.4.5 includes
 
 - Kill Counts cleanup: removed the `ALL/Cx Runs`, `ALL/Cx Death Kill Rate`, and `ALL/Cx Win+ Rate` columns from the table/export surface.
 - Kill Counts headings now reflect the active filter directly, such as `ALL Death Kills`, `C16 Eden Kills`, and `C10–16 Primal Death Kills`.
 - Cinder filter buttons now show selected state persistently; hover no longer mimics selection, and Shift-click range guidance is displayed beside the filter.
 - Screenshot Friendly Mode now auto-selects the first/Class column, recalculates AND-rule highlights immediately, and restores the full original table from the authoritative snapshot after mini-table mode.
-- Working in-app auto-update flow: every normal GUI launch checks GitHub Releases once, compares semantic versions, prompts with **Update now** / **Skip for now**, downloads the `TinyRoguesTracker-vX.Y.Z-Setup.exe` Inno installer, launches it in update mode, and exits cleanly. Offline/check failures are non-blocking.
-- Core views remain **Cinder Highscores**, **Kill Counts**, and **Class Breakdown**.
-- Manual **Check for updates** button uses the same installer path as the startup check.
+- Main menu separates prominent primary tracker views from subdued utility actions.
+- Kill Counts has route-aware colouring, a strong Win+/route separator, and an optional pinned **TOTALS** row for the active cinder filter.
+- **Survival Breakdown** includes an **ALL** aggregate option plus visible **Deaths** / **Floors Completed** mode buttons and logical Back navigation.
+- Cinder Highscores uses red numeric score values, neutral missing values, and gold best-value overrides.
+- Working in-app auto-update flow: every normal GUI launch schedules one asynchronous GitHub Releases check after the main window is usable, prompts only when a newer installer exists, downloads the `TinyRoguesTracker-vX.Y.Z-Setup.exe` Inno installer, launches it in update mode, and exits cleanly. No-update auto-checks are silent; offline/check failures are non-blocking.
+- Core views remain **Cinder Highscores**, **Kill Counts**, and **Survival Breakdown**.
+- Manual **Check for updates** button uses the same installer path as the startup check and still reports when the app is already up to date.
 
 ## Run from source on Windows
 
@@ -31,7 +35,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.4.exe
+dist\TinyRoguesTracker-v0.4.5.exe
 ```
 
 ## Installer
@@ -80,7 +84,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.4`.
+7. Publishes artifacts for tagged releases like `v0.4.5`.
 
 ## Development validation
 
