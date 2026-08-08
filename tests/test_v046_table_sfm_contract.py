@@ -24,7 +24,7 @@ def run(cls, cinder, floor, bosses):
 
 
 def test_version_is_046():
-    assert __version__ == "0.4.9"
+    assert __version__ == "0.4.10"
 
 
 def test_survival_breakdown_totals_column_and_rate_rows_from_current_table_data():

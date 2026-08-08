@@ -1,159 +1,189 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "game": "Tiny Rogues",
   "provenance": {
-    "status": "enriched_from_google_drive_save_folder_and_il2cpp_metadata_strings",
-    "note": "Generated from restored Google Drive archive Dollans cinder tracker files.rar. global-metadata.dat yielded enum names for player classes, bosses, cinder modifiers, gifts, and objectives. GameAssembly.dll in the archive extracted short by 207,360 bytes, so no binary disassembly was trusted; tracker remains read-only.",
+    "status": "verified_from_il2cpp_metadata_enum_and_hashes",
+    "note": "v0.4.10 repaired PlayedClass mapping by parsing the Player.PlayerClassId enum from matching IL2CPP global-metadata.dat and hashing the supplied GameAssembly.dll/global-metadata.dat build files. CinderStreakHistory is a separate namespace; only verified core slots augment historical Death clears, while variation/reserved tail slots are quarantined.",
     "source_paths": [
-      "Tiny Rogues/GameAssembly.dll",
-      "Tiny Rogues/Tiny Rogues_Data/il2cpp_data/Metadata/global-metadata.dat",
-      "C:/Users/jorda/AppData/LocalLow/RubyDev/Tiny Rogues"
+      "/root/Dollans cinder tracker files/GameAssembly.dll",
+      "/root/Dollans cinder tracker files/global-metadata.dat"
     ]
   },
   "characters": {
     "0": {
       "name": "TheHero",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "the_hero"
     },
     "1": {
       "name": "Knight",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "knight"
     },
     "2": {
       "name": "Sorcerer",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "sorcerer"
     },
     "3": {
       "name": "Ranger",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "ranger"
     },
     "4": {
       "name": "Bandit",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "bandit"
     },
     "5": {
       "name": "Cleric",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "cleric"
     },
     "6": {
       "name": "Pyromancer",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "pyromancer"
     },
     "7": {
       "name": "Thief",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "thief"
     },
     "8": {
       "name": "Wanderer",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "wanderer"
     },
     "9": {
       "name": "Warrior",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "warrior"
     },
     "10": {
       "name": "Deprived",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "deprived"
     },
     "11": {
       "name": "Gunslinger",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "gunslinger"
     },
     "12": {
       "name": "Doppelganger",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "doppelganger"
     },
     "13": {
       "name": "Wizard",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "wizard"
     },
     "14": {
       "name": "Soldier",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "soldier"
     },
     "15": {
       "name": "Bard",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "bard"
     },
     "16": {
       "name": "Mystic",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "mystic"
     },
     "17": {
       "name": "Monk",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "monk"
     },
     "18": {
       "name": "Paladin",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "paladin"
     },
     "19": {
       "name": "SuperHero",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "super_hero"
     },
     "20": {
       "name": "Necromancer",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "necromancer"
     },
     "21": {
       "name": "Druid",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "druid"
     },
     "22": {
       "name": "Barbarian",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "barbarian"
     },
     "23": {
       "name": "Ninja",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "ninja"
     },
     "24": {
       "name": "DemonHunter",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "demon_hunter"
     },
     "25": {
       "name": "Cyborg",
-      "status": "metadata_enum"
+      "status": "metadata_enum_verified",
+      "logical_id": "cyborg"
     },
     "26": {
-      "name": "Dancer",
-      "status": "metadata_enum"
+      "name": "Chaos",
+      "status": "metadata_enum_verified",
+      "logical_id": "chaos"
     },
     "27": {
-      "name": "Dragoon",
-      "status": "metadata_enum"
+      "name": "Dancer",
+      "status": "metadata_enum_verified",
+      "logical_id": "dancer"
     },
     "28": {
-      "name": "Esper",
-      "status": "metadata_enum"
+      "name": "Dragoon",
+      "status": "metadata_enum_verified",
+      "logical_id": "dragoon"
     },
     "29": {
-      "name": "Jester",
-      "status": "metadata_enum"
+      "name": "Esper",
+      "status": "metadata_enum_verified",
+      "logical_id": "esper"
     },
     "30": {
-      "name": "Pirate",
-      "status": "metadata_enum"
+      "name": "Jester",
+      "status": "metadata_enum_verified",
+      "logical_id": "jester"
     },
     "31": {
-      "name": "Samurai",
-      "status": "metadata_enum"
+      "name": "Pirate",
+      "status": "metadata_enum_verified",
+      "logical_id": "pirate"
     },
     "32": {
-      "name": "Alchemist",
-      "status": "metadata_enum"
+      "name": "Samurai",
+      "status": "metadata_enum_verified",
+      "logical_id": "samurai"
     },
     "33": {
-      "name": "Santa",
-      "status": "metadata_enum"
+      "name": "Alchemist",
+      "status": "metadata_enum_verified",
+      "logical_id": "alchemist"
     },
     "34": {
-      "name": "Class ID 34",
-      "status": "observed_unresolved"
-    },
-    "35": {
-      "name": "Class ID 35",
-      "status": "observed_unresolved"
+      "name": "Santa",
+      "status": "metadata_enum_verified",
+      "logical_id": "santa"
     }
   },
   "bosses": {
@@ -590,5 +620,206 @@
       "name": "Meta Perk ID 0",
       "status": "placeholder"
     }
-  }
+  },
+  "character_roster": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34
+  ],
+  "cinder_history_slots": {
+    "0": 0,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "13": 13,
+    "14": 14,
+    "15": 15,
+    "16": 16,
+    "17": 17,
+    "18": 18,
+    "19": 19,
+    "20": 20,
+    "21": 21,
+    "22": 22,
+    "23": 23,
+    "24": 24,
+    "25": 25,
+    "26": 26,
+    "27": 27,
+    "28": 28,
+    "29": 29,
+    "30": 30,
+    "31": 31,
+    "32": 32,
+    "33": 33,
+    "34": 34
+  },
+  "class_mapping_adapters": [
+    {
+      "adapter_id": "tiny-rogues-il2cpp-playerclassid-c66eb2fb-e0d61b7f",
+      "status": "verified_current_build",
+      "build_fingerprint": {
+        "game_assembly_sha256": "c66eb2fb70ce78e65da227b245cc43a5e92f2ec135bff721629d4c0485844369",
+        "global_metadata_sha256": "e0d61b7f2173305e081fa0b063ec1fba2a98564262b4dff9ad033aac537a261c"
+      },
+      "source_method": "Parsed Player.PlayerClassId enum from IL2CPP global-metadata.dat; verified same supplied GameAssembly.dll/global-metadata.dat hashes for Jordan/Tiner build.",
+      "played_class_ids": {
+        "0": "TheHero",
+        "1": "Knight",
+        "2": "Sorcerer",
+        "3": "Ranger",
+        "4": "Bandit",
+        "5": "Cleric",
+        "6": "Pyromancer",
+        "7": "Thief",
+        "8": "Wanderer",
+        "9": "Warrior",
+        "10": "Deprived",
+        "11": "Gunslinger",
+        "12": "Doppelganger",
+        "13": "Wizard",
+        "14": "Soldier",
+        "15": "Bard",
+        "16": "Mystic",
+        "17": "Monk",
+        "18": "Paladin",
+        "19": "SuperHero",
+        "20": "Necromancer",
+        "21": "Druid",
+        "22": "Barbarian",
+        "23": "Ninja",
+        "24": "DemonHunter",
+        "25": "Cyborg",
+        "26": "Chaos",
+        "27": "Dancer",
+        "28": "Dragoon",
+        "29": "Esper",
+        "30": "Jester",
+        "31": "Pirate",
+        "32": "Samurai",
+        "33": "Alchemist",
+        "34": "Santa"
+      },
+      "logical_ids": {
+        "0": "the_hero",
+        "1": "knight",
+        "2": "sorcerer",
+        "3": "ranger",
+        "4": "bandit",
+        "5": "cleric",
+        "6": "pyromancer",
+        "7": "thief",
+        "8": "wanderer",
+        "9": "warrior",
+        "10": "deprived",
+        "11": "gunslinger",
+        "12": "doppelganger",
+        "13": "wizard",
+        "14": "soldier",
+        "15": "bard",
+        "16": "mystic",
+        "17": "monk",
+        "18": "paladin",
+        "19": "super_hero",
+        "20": "necromancer",
+        "21": "druid",
+        "22": "barbarian",
+        "23": "ninja",
+        "24": "demon_hunter",
+        "25": "cyborg",
+        "26": "chaos",
+        "27": "dancer",
+        "28": "dragoon",
+        "29": "esper",
+        "30": "jester",
+        "31": "pirate",
+        "32": "samurai",
+        "33": "alchemist",
+        "34": "santa"
+      },
+      "core_cinder_history_slots": {
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9,
+        "10": 10,
+        "11": 11,
+        "12": 12,
+        "13": 13,
+        "14": 14,
+        "15": 15,
+        "16": 16,
+        "17": 17,
+        "18": 18,
+        "19": 19,
+        "20": 20,
+        "21": 21,
+        "22": 22,
+        "23": 23,
+        "24": 24,
+        "25": 25,
+        "26": 26,
+        "27": 27,
+        "28": 28,
+        "29": 29,
+        "30": 30,
+        "31": 31,
+        "32": 32,
+        "33": 33,
+        "34": 34
+      },
+      "history_notes": {
+        "cinder_streak_history": "Separate save namespace. For this build only slots 0-34 are treated as verified core class history slots.",
+        "doppelganger_variation_history": "Slots beyond the verified core range are quarantined as variation/reserved history unless a future adapter proves their names/order.",
+        "known_validation": "Tiner PlayedClass ID 26 resolves to Chaos; ID 34 resolves to Santa."
+      }
+    }
+  ]
 }

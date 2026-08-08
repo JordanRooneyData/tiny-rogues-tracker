@@ -6,50 +6,113 @@
       "PlayedClass": 21,
       "CinderLevel": 12,
       "FloorReached": 11,
-      "bossesKilled": [1, 18, 21, 23]
+      "bossesKilled": [
+        1,
+        18,
+        21,
+        23
+      ]
     },
     {
       "StartTime": "sample",
       "PlayedClass": 23,
       "CinderLevel": 16,
       "FloorReached": 11,
-      "bossesKilled": [1, 18, 22, 24]
+      "bossesKilled": [
+        1,
+        18,
+        22,
+        24
+      ]
     },
     {
       "StartTime": "sample",
-      "PlayedClass": 32,
+      "PlayedClass": 33,
       "CinderLevel": 14,
       "FloorReached": 11,
-      "bossesKilled": [1, 18, 20, 19]
+      "bossesKilled": [
+        1,
+        18,
+        20,
+        19
+      ]
     }
   ],
   "CinderStreakHistory": [
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
     {
       "highestUsedCinderThisRun": 12,
       "deathKills": 5,
       "megaDeathKills": 0,
-      "cinderHistoryFlat": [1, 1, 4, 8, 12]
+      "cinderHistoryFlat": [
+        1,
+        1,
+        4,
+        8,
+        12
+      ]
     },
     {},
     {
       "highestUsedCinderThisRun": 16,
       "deathKills": 1,
       "megaDeathKills": 0,
-      "cinderHistoryFlat": [16]
+      "cinderHistoryFlat": [
+        16
+      ]
     },
-    {}, {}, {}, {}, {}, {}, {}, {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
     {
       "highestUsedCinderThisRun": 14,
       "deathKills": 1,
       "megaDeathKills": 0,
-      "cinderHistoryFlat": [14]
+      "cinderHistoryFlat": [
+        14
+      ]
     },
-    {}, {}, {}
+    {},
+    {}
   ],
-  "CinderModifiersEnabled": {"0": true},
-  "CompletedObjectives": [1, 2],
-  "DiscoveredTeleportDestinations": [0],
+  "CinderModifiersEnabled": {
+    "0": true
+  },
+  "CompletedObjectives": [
+    1,
+    2
+  ],
+  "DiscoveredTeleportDestinations": [
+    0
+  ],
   "SelectedGift": 13,
-  "MetaPerks": {"Page_1": {}}
+  "MetaPerks": {
+    "Page_1": {}
+  }
 }

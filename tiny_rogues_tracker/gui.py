@@ -16,6 +16,8 @@ from .core import (
     discover_save_files,
     export_csv,
     format_cinder,
+    format_mapping_diagnostics,
+    build_mapping_diagnostics,
     load_ids,
     sort_key,
     DEATHS_MODE,
@@ -672,6 +674,7 @@ class TrackerApp(QMainWindow):
         self.ids = load_ids(self.ids_path)
         self.save_path = Path(save_path) if save_path else choose_default_save(discover_save_files(), self.ids)
         self.model = None
+        self.save_data = None
         self.current_selection = CinderSelection.all()
         self.cinder_anchor: int | None = None
         self.update_check_started = False
@@ -709,7 +712,8 @@ class TrackerApp(QMainWindow):
     def _load_model(self):
         if self.save_path and self.save_path.exists():
             import json
-            self.model = analyze_save(json.loads(self.save_path.read_text(encoding="utf-8")), self.ids)
+            self.save_data = json.loads(self.save_path.read_text(encoding="utf-8"))
+            self.model = analyze_save(self.save_data, self.ids)
 
     def _go_home(self):
         self.stack.setCurrentIndex(0)
@@ -767,6 +771,7 @@ class TrackerApp(QMainWindow):
             ("Browse / Reload Save", self._browse_save),
             ("Check for Updates", self.manual_check_for_updates),
             ("Export CSV", self._export),
+            ("Copy Diagnostics", self._copy_diagnostics),
         ]
         for col, (label, fn) in enumerate(utilities):
             utility_grid.addWidget(self._make_home_button(label, fn, "UtilityAction"), 0, col)
@@ -783,6 +788,14 @@ class TrackerApp(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(self, "Export CSV", "tiny_rogues_report.csv", "CSV (*.csv)")
         if path:
             export_csv(self.model, path, self.current_selection); QMessageBox.information(self, "Exported", path)
+
+    def _copy_diagnostics(self):
+        if not self.save_data:
+            QMessageBox.information(self, "Diagnostics", "No save is loaded.")
+            return
+        text = format_mapping_diagnostics(build_mapping_diagnostics(self.save_data, self.ids))
+        QApplication.clipboard().setText(text)
+        QMessageBox.information(self, "Diagnostics copied", text)
 
     def _table_page(self, title, back_target=None, compact_title: str | None = None, compact_color: str | None = None):
         w, layout = self._page(title, back_target=back_target)

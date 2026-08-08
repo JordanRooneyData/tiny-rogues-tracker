@@ -1,10 +1,13 @@
-# Tiny Rogues Tracker v0.4.9
+# Tiny Rogues Tracker v0.4.10
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.9 includes
+## What v0.4.10 includes
 
-- Focused v0.4.9 header-interaction/separator release: restored left-click header sorting, moved reversal to right-click header menus, removed standalone reverse buttons, and fixed Kill Counts deity separators.
+- Universal save/class mapping repair: `RunRecords[].PlayedClass` now uses the verified IL2CPP `Player.PlayerClassId` map for the current build, including `26 = Chaos` and `34 = Santa`.
+- `CinderStreakHistory` and Doppelganger variation history are separated from PlayedClass IDs, so long history arrays no longer create phantom `Class ID 35+` rows or attach historical Death clears to the wrong class.
+- Unknown/future builds fail safely: actual unknown `PlayedClass` values remain visible as diagnostics, while unverified history-only slots are quarantined instead of confidently named.
+- Added copyable mapping diagnostics for future bug reports without exposing raw save contents.
 - Kill Counts cleanup: removed the `ALL/Cx Runs`, `ALL/Cx Death Kill Rate`, and `ALL/Cx Win+ Rate` columns from the table/export surface.
 - Kill Counts headings now reflect the active filter directly, such as `ALL Death Kills`, `C16 Eden Kills`, and `C10–16 Primal Death Kills`.
 - Cinder filter buttons now show selected state persistently; hover no longer mimics selection, and Shift-click range guidance is displayed beside the filter.
@@ -44,7 +47,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.9.exe
+dist\TinyRoguesTracker-v0.4.10.exe
 ```
 
 ## Installer
@@ -93,7 +96,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.9`.
+7. Publishes artifacts for tagged releases like `v0.4.10`.
 
 ## Development validation
 
@@ -104,6 +107,12 @@ python3 -m compileall -q tiny_rogues_tracker scripts tests
 
 Linux note: PyInstaller cannot cross-build a real Windows `.exe` from Linux. The VPS validates source/tests and provides the Windows GitHub Actions pipeline; the final `.exe`/installer are produced on `windows-latest` or a local Windows machine.
 
-## Mapping limits
+## Mapping data
 
-The available decoded character metadata still ends at `Santa` (`33`). Character IDs `34` and `35` remain explicit unresolved mappings until newer game metadata identifies them.
+The bundled current-build class mapping was extracted from `Player.PlayerClassId` in IL2CPP metadata and stored in:
+
+```text
+tiny_rogues_tracker/data/tiny_rogues_class_mapping_c66eb2fb_e0d61b7f.json
+```
+
+For this build the normal PlayedClass roster is IDs `0..34`; `26` is `Chaos` and `34` is `Santa`. `CinderStreakHistory` is treated as a separate history namespace. Only verified core slots augment historical Death clears; Doppelganger variation/reserved tail slots are quarantined from the normal roster.

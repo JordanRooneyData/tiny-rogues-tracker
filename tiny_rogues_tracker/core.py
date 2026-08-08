@@ -208,6 +208,14 @@ class CompletionTable:
     def by_name(self) -> dict[str, CompletionRow]:
         return {r.character: r for r in self.rows}
 
+@dataclass(frozen=True)
+class CinderHistoryClassification:
+    history_length: int
+    variation_count: int
+    core_slots: set[int]
+    quarantined_slots: set[int]
+    warnings: list[str]
+
 def completion_totals(rows: list[CompletionRow]) -> CompletionRow:
     total = CompletionRow("TOTALS", -1)
     for row in rows:
@@ -302,11 +310,12 @@ class TrackerModel:
                     row.amon_clears += 1
                 elif run.route_boss == "Primal Death":
                     row.primal_death_clears += 1
-        # Merge only the minimum historical Death-clear evidence absent from retained RunRecords.
-        for cid, cinder in historical_death_cinders(self.save):
-            if not selection.contains(cinder) or (cid, cinder) in recorded_death_by_class_cinder:
+        # Merge only verified minimum historical Death-clear evidence absent from retained RunRecords.
+        # History slots never create rows; only RunRecords may create unknown-ID diagnostics.
+        for cid, cinder in historical_death_cinders(self.save, self.ids):
+            if cid not in by_id or not selection.contains(cinder) or (cid, cinder) in recorded_death_by_class_cinder:
                 continue
-            row = by_id.setdefault(cid, CompletionRow(character_name(self.ids, cid), cid))
+            row = by_id[cid]
             row.cx_runs += 1
             row.death_clears += 1
             row.inferred_historical_death_runs += 1
@@ -467,15 +476,62 @@ def sort_key(v: Any) -> tuple[int, Any]:
 def load_ids(path: str | Path) -> dict[str, Any]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
+def _int_or_none(value: Any) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
 def character_name(ids: dict[str, Any], cid: int) -> str:
-    return ids.get("characters", {}).get(str(cid), {}).get("name", f"Class ID {cid}")
+    meta = ids.get("characters", {}).get(str(cid), {})
+    if isinstance(meta, dict) and meta.get("name"):
+        return str(meta["name"])
+    return f"Unknown PlayedClass ID {cid}"
+
+def canonical_character_ids(ids: dict[str, Any]) -> set[int]:
+    roster = ids.get("character_roster")
+    if isinstance(roster, list):
+        return {cid for raw in roster if (cid := _int_or_none(raw)) is not None}
+    chars = ids.get("characters", {})
+    if isinstance(chars, dict):
+        return {cid for raw in chars.keys() if (cid := _int_or_none(raw)) is not None}
+    return set()
+
+def cinder_history_slot_map(ids: dict[str, Any]) -> dict[int, int]:
+    raw = ids.get("cinder_history_slots")
+    out: dict[int, int] = {}
+    if isinstance(raw, dict):
+        for cid_raw, slot_raw in raw.items():
+            cid = _int_or_none(cid_raw)
+            slot = _int_or_none(slot_raw)
+            if cid is not None and slot is not None and slot >= 0:
+                out[cid] = slot
+        return out
+    chars = ids.get("characters", {})
+    if isinstance(chars, dict):
+        for cid_raw, meta in chars.items():
+            if not isinstance(meta, dict):
+                continue
+            cid = _int_or_none(cid_raw)
+            slot = _int_or_none(meta.get("cinder_history_slot"))
+            if cid is not None and slot is not None and slot >= 0:
+                out[cid] = slot
+    return out
+
+def mapping_adapter_used(ids: dict[str, Any]) -> str:
+    adapters = ids.get("class_mapping_adapters")
+    if isinstance(adapters, list) and adapters and isinstance(adapters[0], dict):
+        return str(adapters[0].get("adapter_id") or adapters[0].get("build_id") or "bundled")
+    return "bundled ids.json"
 
 def all_character_ids(ids: dict[str, Any], save: dict[str, Any]) -> list[int]:
-    out = {int(k) for k in ids.get("characters", {}).keys() if str(k).lstrip("-").isdigit()}
-    out.update(range(len(save.get("CinderStreakHistory", []))))
+    out = set(canonical_character_ids(ids))
     for r in save.get("RunRecords", []):
-        if "PlayedClass" in r:
-            out.add(int(r["PlayedClass"]))
+        if not isinstance(r, dict) or "PlayedClass" not in r:
+            continue
+        cid = _int_or_none(r.get("PlayedClass"))
+        if cid is not None:
+            out.add(cid)
     return sorted(out)
 
 def bosses_from(run: dict[str, Any]) -> set[int]:
@@ -593,20 +649,92 @@ def discover_save_files() -> list[Path]:
             files.extend(sorted(d.glob("Public_Slot*_Save*.json")))
     return files
 
-def historical_death_cinders(save: dict[str, Any]) -> list[tuple[int, int]]:
+def classify_cinder_history_slots(save: dict[str, Any], ids: dict[str, Any]) -> CinderHistoryClassification:
+    streaks = save.get("CinderStreakHistory", [])
+    history_length = len(streaks) if isinstance(streaks, list) else 0
+    variations = save.get("DoppelgangerVariationWins", [])
+    variation_count = len(variations) if isinstance(variations, list) else 0
+    mapped_slots = {slot for slot in cinder_history_slot_map(ids).values() if 0 <= slot < history_length}
+    all_slots = set(range(history_length))
+    warnings: list[str] = []
+    if not cinder_history_slot_map(ids):
+        warnings.append("CinderStreakHistory slot mapping is not verified; historical Death augmentation disabled.")
+    quarantined = all_slots - mapped_slots
+    if quarantined:
+        warnings.append(f"{len(quarantined)} CinderStreakHistory slots are variation/reserved/unmapped and were quarantined from the normal roster.")
+    expected = len(mapped_slots) + variation_count
+    if variation_count and history_length != expected:
+        warnings.append(f"CinderStreakHistory length {history_length} does not equal mapped core slots {len(mapped_slots)} plus DoppelgangerVariationWins {variation_count}; tail ordering was not assumed.")
+    return CinderHistoryClassification(history_length, variation_count, mapped_slots, quarantined, warnings)
+
+def historical_death_cinders(save: dict[str, Any], ids: dict[str, Any]) -> list[tuple[int, int]]:
     out: list[tuple[int, int]] = []
-    for cid, st in enumerate(save.get("CinderStreakHistory", [])):
+    streaks = save.get("CinderStreakHistory", [])
+    if not isinstance(streaks, list):
+        return out
+    for cid, slot in sorted(cinder_history_slot_map(ids).items()):
+        if slot >= len(streaks):
+            continue
+        st = streaks[slot]
         if not isinstance(st, dict) or st.get("deathKills", 0) <= 0:
             continue
-        cinder = int(st.get("highestUsedCinderThisRun", 0))
-        out.append((cid, cinder))
+        cinder = _int_or_none(st.get("highestUsedCinderThisRun", 0))
+        if cinder is not None:
+            out.append((cid, cinder))
     return out
+
+def build_mapping_diagnostics(save: dict[str, Any], ids: dict[str, Any], game_assembly_sha256: str | None = None, global_metadata_sha256: str | None = None) -> dict[str, Any]:
+    runs = [r for r in save.get("RunRecords", []) if isinstance(r, dict) and "PlayedClass" in r]
+    played_ids = sorted({cid for r in runs if (cid := _int_or_none(r.get("PlayedClass"))) is not None})
+    canonical = canonical_character_ids(ids)
+    classification = classify_cinder_history_slots(save, ids)
+    warnings = list(classification.warnings)
+    unknown = [cid for cid in played_ids if cid not in canonical]
+    if unknown:
+        warnings.append(f"Unknown PlayedClass IDs in RunRecords: {', '.join(map(str, unknown))}.")
+    return {
+        "app_version": VERSION,
+        "save_schema_summary": "RunRecords authoritative; CinderStreakHistory augments only verified core slots; Doppelganger/reserved history slots quarantined.",
+        "run_records": len(runs),
+        "distinct_played_class_ids": played_ids,
+        "cinder_streak_history_length": classification.history_length,
+        "doppelganger_variation_wins_length": classification.variation_count,
+        "detected_core_history_length": len(classification.core_slots) if classification.core_slots else None,
+        "quarantined_history_slots_count": len(classification.quarantined_slots),
+        "build_hashes": {"game_assembly_sha256": game_assembly_sha256, "global_metadata_sha256": global_metadata_sha256},
+        "mapping_adapter_used": mapping_adapter_used(ids),
+        "unknown_run_ids": unknown,
+        "mapping_warnings": warnings,
+    }
+
+def format_mapping_diagnostics(report: dict[str, Any]) -> str:
+    lines = [
+        f"Tiny Rogues Tracker v{report.get('app_version', VERSION)} diagnostics",
+        f"RunRecords: {report.get('run_records', 0)}",
+        f"PlayedClass IDs: {report.get('distinct_played_class_ids', [])}",
+        f"CinderStreakHistory length: {report.get('cinder_streak_history_length', 0)}",
+        f"DoppelgangerVariationWins length: {report.get('doppelganger_variation_wins_length', 0)}",
+        f"Detected core history slots: {report.get('detected_core_history_length')}",
+        f"Quarantined history slots: {report.get('quarantined_history_slots_count', 0)}",
+        f"Mapping adapter: {report.get('mapping_adapter_used', 'unknown')}",
+        f"Unknown run IDs: {report.get('unknown_run_ids', [])}",
+    ]
+    hashes = report.get("build_hashes") or {}
+    if hashes.get("game_assembly_sha256") or hashes.get("global_metadata_sha256"):
+        lines.append(f"GameAssembly SHA256: {hashes.get('game_assembly_sha256') or 'unavailable'}")
+        lines.append(f"global-metadata SHA256: {hashes.get('global_metadata_sha256') or 'unavailable'}")
+    warnings = report.get("mapping_warnings") or []
+    if warnings:
+        lines.append("Warnings:")
+        lines.extend(f"- {w}" for w in warnings)
+    return "\n".join(lines)
 
 def analyze_save(save: dict[str, Any], ids: dict[str, Any]) -> TrackerModel:
     runs = [parse_run(r) for r in save.get("RunRecords", []) if isinstance(r, dict) and "PlayedClass" in r]
     cids = all_character_ids(ids, save)
     records: list[CharacterRecord] = []
     streaks = save.get("CinderStreakHistory", [])
+    history_slots = cinder_history_slot_map(ids)
     for cid in cids:
         name = character_name(ids, cid)
         rec = CharacterRecord(cid, name)
@@ -627,8 +755,9 @@ def analyze_save(save: dict[str, Any], ids: dict[str, Any]) -> TrackerModel:
                     rec.best_amon = max_optional(rec.best_amon, run.cinder)
                 elif run.route_boss == "Primal Death":
                     rec.best_primal_death = max_optional(rec.best_primal_death, run.cinder)
-        if cid < len(streaks) and isinstance(streaks[cid], dict):
-            st = streaks[cid]
+        slot = history_slots.get(cid)
+        if isinstance(streaks, list) and slot is not None and slot < len(streaks) and isinstance(streaks[slot], dict):
+            st = streaks[slot]
             if st.get("deathKills", 0) > 0:
                 rec.best_death = max_optional(rec.best_death, int(st.get("highestUsedCinderThisRun", 0)))
                 rec.minimum_runs = max(rec.minimum_runs, rec.observed_runs + (0 if any(r.is_death and r.cinder == int(st.get("highestUsedCinderThisRun", 0)) for r in class_runs) else 1))

@@ -83,7 +83,7 @@ def build_kill_count_like_table():
 
 
 def test_version_is_v049():
-    assert __version__ == "0.4.9"
+    assert __version__ == "0.4.10"
 
 
 def test_kill_counts_separator_uses_logical_ids_not_death_suffix_overlap():

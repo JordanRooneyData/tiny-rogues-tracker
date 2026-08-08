@@ -121,8 +121,9 @@ def test_zero_run_and_unresolved_characters_still_appear():
     run_tracker(out=out)
     text = out.read_text(encoding="utf-8")
     assert "TheHero" in text
-    assert "Class ID 34" in text and "Class ID 35" in text
-    assert "Unresolved character mappings: 34, 35" in text
+    assert "Chaos" in text and "Santa" in text
+    assert "Class ID 35" not in text
+    assert "Unresolved character mappings" not in text
 
 
 def test_blank_save_filtering_and_single_non_blank_auto_selection(tmp_path):
