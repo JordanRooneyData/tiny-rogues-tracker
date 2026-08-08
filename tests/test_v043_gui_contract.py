@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_version_is_0431():
-    assert __version__ == "0.4.11"
+    assert __version__ == "0.5.0"
 
 
 def test_kill_counts_visible_columns_remove_runs_and_rates_and_use_filter_prefix():

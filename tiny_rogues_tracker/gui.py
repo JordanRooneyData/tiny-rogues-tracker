@@ -49,7 +49,7 @@ PALETTE = {
 }
 
 try:
-    from PySide6.QtCore import Qt, QTimer, QRect
+    from PySide6.QtCore import Qt, QTimer, QRect, QSize
     from PySide6.QtGui import QAction, QColor, QPen, QPainter, QBrush, QFont
     from PySide6.QtWidgets import (
         QApplication, QFileDialog, QGridLayout, QHBoxLayout, QHeaderView, QLabel, QMainWindow,
@@ -57,7 +57,7 @@ try:
         QTableWidgetItem, QVBoxLayout, QWidget, QButtonGroup, QStyledItemDelegate, QStyleOptionViewItem,
     )
 except Exception:  # pragma: no cover
-    Qt = QTimer = QRect = QAction = QColor = QPen = QPainter = QBrush = QFont = QApplication = QFileDialog = QGridLayout = QHBoxLayout = QHeaderView = QLabel = QMainWindow = QMenu = QMessageBox = QPushButton = QStackedWidget = QTableWidget = QTableWidgetItem = QVBoxLayout = QWidget = QButtonGroup = QStyledItemDelegate = QStyleOptionViewItem = None
+    Qt = QTimer = QRect = QSize = QAction = QColor = QPen = QPainter = QBrush = QFont = QApplication = QFileDialog = QGridLayout = QHBoxLayout = QHeaderView = QLabel = QMainWindow = QMenu = QMessageBox = QPushButton = QStackedWidget = QTableWidget = QTableWidgetItem = QVBoxLayout = QWidget = QButtonGroup = QStyledItemDelegate = QStyleOptionViewItem = None
 
 
 @dataclass(frozen=True)
@@ -166,7 +166,7 @@ class SfmHeaderView(QHeaderView):
             painter.setBrush(Qt.NoBrush)
             painter.drawRect(rect.adjusted(2, 2, -3, -3))
         if self.orientation() == Qt.Horizontal and logicalIndex in self.divider_columns:
-            painter.setPen(QPen(QColor(PALETTE['rare_gold']), 4))
+            painter.setPen(QPen(QColor(PALETTE['hot_magenta']), 4))
             painter.drawLine(rect.topRight(), rect.bottomRight())
         painter.restore()
 
@@ -181,7 +181,7 @@ class ColumnDividerDelegate(QStyledItemDelegate):
         super().paint(painter, option, index)
         if index.column() in self.divider_columns:
             painter.save()
-            painter.setPen(QPen(QColor(PALETTE['rare_gold']), 3))
+            painter.setPen(QPen(QColor(PALETTE['hot_magenta']), 3))
             painter.drawLine(option.rect.topRight(), option.rect.bottomRight())
             painter.restore()
 
@@ -224,6 +224,12 @@ class SortableTable(QTableWidget):
         self.sfm_button = None
         self.sfm_exit_button = None
         self.sfm_label = None
+        self.compact_chrome_widgets: list = []
+        self.compact_title_row_widget = None
+        self.normal_window_geometry = None
+        self.normal_window_state = None
+        self.normal_window_rect = None
+        self.compact_widget_visibility: dict = {}
         self.scroll_row = 0
         self.scroll_col = 0
         self.setSortingEnabled(False)
@@ -251,6 +257,14 @@ class SortableTable(QTableWidget):
             self.sfm_exit_button.clicked.connect(self.exit_sfm_selection)
         self._sync_sfm_controls()
 
+    def set_compact_chrome(self, widgets: list, title_row_widget=None):
+        self.compact_chrome_widgets = list(widgets)
+        self.compact_title_row_widget = title_row_widget
+
+    def _main_window(self):
+        w = self.window()
+        return w if isinstance(w, QMainWindow) else None
+
     def set_logical_column_ids(self, column_ids: list[str]):
         self.current_column_ids = list(column_ids)
         if self.columnCount() == len(column_ids):
@@ -273,7 +287,19 @@ class SortableTable(QTableWidget):
         font.setPointSize(24)
         self.compact_title_label.setFont(font)
         self.compact_title_label.setAlignment(Qt.AlignCenter)
-        self.compact_title_label.setStyleSheet(f"font-size: 24pt; font-weight: 900; color: {self.compact_title_color}; text-align: center; margin: 6px 0;")
+        target_width = max(1, self._table_content_width())
+        size = 28
+        metrics_font = QFont(font)
+        while size > 1:
+            metrics_font.setPointSize(size)
+            fm = self.compact_title_label.fontMetrics()
+            self.compact_title_label.setFont(metrics_font)
+            fm = self.compact_title_label.fontMetrics()
+            if fm.horizontalAdvance(self.compact_title_text) <= target_width - 12:
+                break
+            size -= 1
+        self.compact_title_label.setFixedWidth(target_width)
+        self.compact_title_label.setStyleSheet(f"font-size: {size}pt; font-weight: 900; color: {self.compact_title_color}; text-align: center; margin: 2px 0;")
 
     def set_corner_controls(self, *buttons):
         self.corner_buttons = tuple(buttons)
@@ -481,6 +507,36 @@ class SortableTable(QTableWidget):
             if height > 0 and r < self.rowCount():
                 self.setRowHeight(r, height)
 
+    def _table_content_width(self) -> int:
+        return (self.verticalHeader().width() if self.verticalHeader().isVisible() else 0) + sum(self.columnWidth(c) for c in range(self.columnCount()) if not self.isColumnHidden(c))
+
+    def _table_content_height(self) -> int:
+        return (self.horizontalHeader().height() if self.horizontalHeader().isVisible() else 0) + sum(self.rowHeight(r) for r in range(self.rowCount()) if not self.isRowHidden(r))
+
+    def sfm_content_border_rect(self) -> QRect:
+        if self.rowCount() <= 0 or self.columnCount() <= 0:
+            return QRect()
+        left = self.verticalHeader().x() if self.verticalHeader().isVisible() else self.viewport().x()
+        top = self.horizontalHeader().y() if self.horizontalHeader().isVisible() else self.viewport().y()
+        width = self._table_content_width()
+        height = self._table_content_height()
+        return QRect(left, top, max(0, min(width, self.width() - left - 1)), max(0, min(height, self.height() - top - 1)))
+
+    def paintEvent(self, event):  # pragma: no cover - rendered in offscreen Qt tests
+        super().paintEvent(event)
+        if self.sfm.state == "selection":
+            painter = QPainter()
+            if painter.begin(self):
+                painter.setPen(QPen(QColor(PALETTE['rare_gold']), 3))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawRect(self.sfm_content_border_rect().adjusted(1, 1, -2, -2))
+                painter.end()
+
+    def resizeEvent(self, event):  # pragma: no cover - Qt event glue
+        super().resizeEvent(event)
+        if self.sfm.state == "selection":
+            self.viewport().update(); self.update()
+
     def reverse_columns(self):
         if self.sfm.state == "selection":
             return
@@ -515,7 +571,9 @@ class SortableTable(QTableWidget):
             self.scroll_col = self.columnAt(0)
         self.sfm.press(auto_select_first_col=self.auto_select_first_col)
         if previous == "selection" and self.sfm.state == "compact":
+            self._enter_compact_chrome()
             self._collapse_to_sfm_compact()
+            self._resize_window_for_compact()
         elif previous == "compact" and self.sfm.state == "normal":
             self.sort_column = None
             self.sort_direction = 0
@@ -526,6 +584,7 @@ class SortableTable(QTableWidget):
             self.compact_widths = []
             self.compact_heights = []
             self.apply_sort()
+            self._exit_compact_chrome()
             if self.scroll_row >= 0:
                 self.scrollToItem(self.item(min(self.scroll_row, max(0, self.rowCount() - 1)), 0))
             self._install_corner_controls()
@@ -545,10 +604,8 @@ class SortableTable(QTableWidget):
             self.sfm_button.setChecked(self.sfm.state != "normal")
         if self.sfm_exit_button:
             self.sfm_exit_button.setVisible(self.sfm.state == "selection")
-        if self.sfm.state == "selection":
-            self.setStyleSheet(f"QTableWidget {{ border: 3px solid {PALETTE['rare_gold']}; }}")
-        else:
-            self.setStyleSheet("")
+        self.setStyleSheet("")
+        self.update()
 
     def _apply_sfm_highlights(self):
         selected_cells = self.sfm.highlighted_cells()
@@ -598,6 +655,62 @@ class SortableTable(QTableWidget):
             self._apply_header_indicators()
             self._apply_sfm_highlights()
 
+    def _enter_compact_chrome(self):
+        main = self._main_window()
+        if main and self.normal_window_geometry is None:
+            self.normal_window_geometry = main.saveGeometry()
+            self.normal_window_state = main.saveState()
+            self.normal_window_rect = main.geometry()
+        page = self.parentWidget()
+        keep = {self, self.compact_title_row_widget, self.compact_title_label, self.sfm_button}
+        self.compact_widget_visibility = {}
+        if page is not None:
+            for widget in page.findChildren(QWidget):
+                if widget in keep or self.isAncestorOf(widget):
+                    continue
+                if self.compact_title_row_widget is not None and self.compact_title_row_widget.isAncestorOf(widget):
+                    continue
+                self.compact_widget_visibility[widget] = widget.isVisible()
+                widget.setVisible(False)
+        for widget in self.compact_chrome_widgets:
+            if widget is not None:
+                self.compact_widget_visibility.setdefault(widget, widget.isVisible())
+                widget.setVisible(False)
+        if self.compact_title_row_widget is not None:
+            self.compact_title_row_widget.setVisible(True)
+
+    def _exit_compact_chrome(self):
+        for widget, was_visible in list(self.compact_widget_visibility.items()):
+            if widget is not None:
+                widget.setVisible(was_visible)
+        self.compact_widget_visibility = {}
+        if self.compact_title_row_widget is not None:
+            self.compact_title_row_widget.setVisible(False)
+        main = self._main_window()
+        if main and self.normal_window_geometry is not None:
+            main.restoreGeometry(self.normal_window_geometry)
+            if self.normal_window_state is not None:
+                main.restoreState(self.normal_window_state)
+            if self.normal_window_rect is not None:
+                main.setGeometry(self.normal_window_rect)
+                QApplication.processEvents()
+                main.setGeometry(self.normal_window_rect)
+        self.normal_window_geometry = None
+        self.normal_window_state = None
+        self.normal_window_rect = None
+
+    def _resize_window_for_compact(self):
+        main = self._main_window()
+        if not main:
+            return
+        self._sync_compact_title()
+        table_w = self._table_content_width() + self.frameWidth() * 2 + 24
+        table_h = self._table_content_height() + self.frameWidth() * 2 + 56
+        screen = main.screen() or QApplication.primaryScreen()
+        avail = screen.availableGeometry() if screen else QRect(0, 0, 1200, 800)
+        target = QSize(min(max(table_w, 320), avail.width()), min(max(table_h, 220), avail.height()))
+        main.resize(target)
+
     def _collapse_to_sfm_compact(self):
         rows = sorted(self.sfm.selected_rows)
         cols = sorted(self.sfm.selected_cols)
@@ -634,6 +747,7 @@ class SortableTable(QTableWidget):
             self.setRowHeight(r, min(max(self.rowHeight(r), 22), 32))
         self.compact_widths = [self.columnWidth(c) for c in range(self.columnCount())]
         self.compact_heights = [self.rowHeight(r) for r in range(self.rowCount())]
+        self._sync_compact_title()
 
     def _apply_survival_geometry(self):
         self.resizeColumnsToContents()
@@ -661,6 +775,14 @@ class SortableTable(QTableWidget):
 
 def zero_value(val) -> bool:
     return val in (0, "0", "0%", "—")
+
+
+def has_full_deity_c16(rec) -> bool:
+    return all(value is not None and value >= 16 for value in (rec.best_eden, rec.best_amon, rec.best_primal_death))
+
+
+def crowned_class_label(rec) -> str:
+    return f"👑 {rec.character}" if has_full_deity_c16(rec) else rec.character
 
 
 class TrackerApp(QMainWindow):
@@ -799,10 +921,17 @@ class TrackerApp(QMainWindow):
 
     def _table_page(self, title, back_target=None, compact_title: str | None = None, compact_color: str | None = None):
         w, layout = self._page(title, back_target=back_target)
-        top = QHBoxLayout(); sfm = QPushButton("SFM"); sfm.setCheckable(True); x_sfm = QPushButton("X"); x_sfm.setToolTip("Exit SFM selection without creating a mini-table"); x_sfm.setVisible(False); expl = QLabel("SFM inactive. Press SFM to choose rows and columns for a compact screenshot table.")
-        top.addWidget(expl); top.addStretch(1); top.addWidget(sfm); top.addWidget(x_sfm); layout.addLayout(top)
-        compact_label = QLabel(""); compact_label.setObjectName("CompactTitle"); compact_label.setVisible(False); layout.addWidget(compact_label)
-        table = SortableTable(title); table.set_sfm_controls(sfm, expl, x_sfm); table.set_compact_title_label(compact_label, compact_title or title.upper(), compact_color); sfm.clicked.connect(table.toggle_sfm); layout.addWidget(table)
+        top_widget = QWidget(); top = QHBoxLayout(top_widget); top.setContentsMargins(0, 0, 0, 0)
+        sfm = QPushButton("SFM"); sfm.setCheckable(True)
+        x_sfm = QPushButton("X"); x_sfm.setToolTip("Exit SFM selection without creating a mini-table"); x_sfm.setVisible(False)
+        expl = QLabel("SFM inactive. Press SFM to choose rows and columns for a compact screenshot table.")
+        top.addWidget(expl); top.addStretch(1); top.addWidget(sfm); top.addWidget(x_sfm); layout.addWidget(top_widget)
+        compact_row_widget = QWidget(); compact_row = QHBoxLayout(compact_row_widget); compact_row.setContentsMargins(0, 0, 0, 0); compact_row.setSpacing(6)
+        compact_label = QLabel(""); compact_label.setObjectName("CompactTitle"); compact_label.setVisible(False)
+        compact_exit = QPushButton("Exit SFM"); compact_exit.setObjectName("UtilityAction"); compact_exit.setMaximumWidth(96)
+        compact_row.addStretch(1); compact_row.addWidget(compact_label, 0, Qt.AlignCenter); compact_row.addWidget(compact_exit, 0, Qt.AlignRight); compact_row.addStretch(1)
+        compact_row_widget.setVisible(False); layout.addWidget(compact_row_widget)
+        table = SortableTable(title); table.set_sfm_controls(sfm, expl, x_sfm); table.set_compact_title_label(compact_label, compact_title or title.upper(), compact_color); table.set_compact_chrome([top_widget, x_sfm, expl], compact_row_widget); sfm.clicked.connect(table.toggle_sfm); compact_exit.clicked.connect(table.toggle_sfm); layout.addWidget(table)
         self.stack.addWidget(w); self.stack.setCurrentWidget(w)
         return table
 
@@ -842,14 +971,21 @@ class TrackerApp(QMainWindow):
         table.setColumnCount(len(headers)); table.setHorizontalHeaderLabels(headers); self._style_route_headers(table); table.setRowCount(len(self.model.records))
         table.set_logical_column_ids(["class", "best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "top_floor_rank"])
         table.protected_leading_headers = ["class"]
-        table.logical_separators = [LogicalSeparator(before_id="top_floor_rank")]
+        table.logical_separators = [
+            LogicalSeparator(after_id="class"),
+            LogicalSeparator(left_ids=("best_death", "best_win_plus"), right_ids=("best_eden", "best_amon", "best_primal_death")),
+            LogicalSeparator(before_id="top_floor_rank"),
+            LogicalSeparator(after_id="top_floor_rank"),
+        ]
         gold = self.model.character_record_highlights()
         cols = [None, "best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "top_floor_rank"]
         for r, rec in enumerate(self.model.records):
-            vals = [rec.character, format_cinder(rec.best_death), format_cinder(rec.best_win_plus), format_cinder(rec.best_eden), format_cinder(rec.best_amon), format_cinder(rec.best_primal_death), rec.top_floor_label]
+            vals = [crowned_class_label(rec), format_cinder(rec.best_death), format_cinder(rec.best_win_plus), format_cinder(rec.best_eden), format_cinder(rec.best_amon), format_cinder(rec.best_primal_death), rec.top_floor_label]
             raw = [rec.character, rec.best_death if rec.best_death is not None else -1, rec.best_win_plus if rec.best_win_plus is not None else -1, rec.best_eden if rec.best_eden is not None else -1, rec.best_amon if rec.best_amon is not None else -1, rec.best_primal_death if rec.best_primal_death is not None else -1, rec.top_floor_rank]
             for c, val in enumerate(vals):
                 item = QTableWidgetItem(str(val)); item.setData(Qt.UserRole, raw[c]); item.setToolTip(rec.sources.get(cols[c] or "", "RunRecords / CinderStreakHistory"))
+                if c == 0 and has_full_deity_c16(rec):
+                    item.setForeground(QColor(PALETTE['rare_gold']))
                 if cols[c] == "top_floor_rank":
                     self._style_item(item, val, gold=bool((rec.character, cols[c]) in gold), numeric_score=True, top_floor_neutral=True)
                 else:
@@ -881,10 +1017,15 @@ class TrackerApp(QMainWindow):
         totals_button.setObjectName("UtilityAction")
         totals_button.clicked.connect(lambda: self._toggle_totals())
         layout.addWidget(totals_button)
-        top = QHBoxLayout(); sfm = QPushButton("SFM"); sfm.setCheckable(True); x_sfm = QPushButton("X"); x_sfm.setToolTip("Exit SFM selection without creating a mini-table"); x_sfm.setVisible(False); expl = QLabel("SFM inactive. Press SFM to choose rows and columns for a compact screenshot table.")
-        top.addWidget(expl); top.addStretch(1); top.addWidget(sfm); top.addWidget(x_sfm); layout.addLayout(top)
-        compact_label = QLabel(""); compact_label.setObjectName("CompactTitle"); compact_label.setVisible(False); layout.addWidget(compact_label)
-        table = SortableTable(VIEW_KILL_COUNTS); table.set_sfm_controls(sfm, expl, x_sfm); table.set_compact_title_label(compact_label, "💀 KILL COUNTS 💀", PALETTE['heaven_ice']); sfm.clicked.connect(table.toggle_sfm); layout.addWidget(table)
+        top_widget = QWidget(); top = QHBoxLayout(top_widget); top.setContentsMargins(0, 0, 0, 0)
+        sfm = QPushButton("SFM"); sfm.setCheckable(True); x_sfm = QPushButton("X"); x_sfm.setToolTip("Exit SFM selection without creating a mini-table"); x_sfm.setVisible(False); expl = QLabel("SFM inactive. Press SFM to choose rows and columns for a compact screenshot table.")
+        top.addWidget(expl); top.addStretch(1); top.addWidget(sfm); top.addWidget(x_sfm); layout.addWidget(top_widget)
+        compact_row_widget = QWidget(); compact_row = QHBoxLayout(compact_row_widget); compact_row.setContentsMargins(0, 0, 0, 0); compact_row.setSpacing(6)
+        compact_label = QLabel(""); compact_label.setObjectName("CompactTitle"); compact_label.setVisible(False)
+        compact_exit = QPushButton("Exit SFM"); compact_exit.setObjectName("UtilityAction"); compact_exit.setMaximumWidth(96)
+        compact_row.addStretch(1); compact_row.addWidget(compact_label, 0, Qt.AlignCenter); compact_row.addWidget(compact_exit, 0, Qt.AlignRight); compact_row.addStretch(1)
+        compact_row_widget.setVisible(False); layout.addWidget(compact_row_widget)
+        table = SortableTable(VIEW_KILL_COUNTS); table.set_sfm_controls(sfm, expl, x_sfm); table.set_compact_title_label(compact_label, "💀 KILL COUNTS 💀", PALETTE['heaven_ice']); table.set_compact_chrome([top_widget, x_sfm, expl, filter_label, totals_button], compact_row_widget); sfm.clicked.connect(table.toggle_sfm); compact_exit.clicked.connect(table.toggle_sfm); layout.addWidget(table)
         self.stack.addWidget(w); self.stack.setCurrentWidget(w)
         rows = self.model.completion_rows(self.current_selection).rows
         display_rows = ([completion_totals(rows)] if self.show_totals else []) + rows
@@ -893,7 +1034,10 @@ class TrackerApp(QMainWindow):
         table.setColumnCount(len(headers)); table.setHorizontalHeaderLabels(headers); self._style_route_headers(table); table.setRowCount(len(display_rows))
         table.set_logical_column_ids(["class", "death_kills", "win_plus_kills", "eden_kills", "amon_kills", "primal_death_kills"])
         table.protected_leading_headers = ["class"]
-        table.logical_separators = [LogicalSeparator(left_ids=("death_kills", "win_plus_kills"), right_ids=("eden_kills", "amon_kills", "primal_death_kills"))]
+        table.logical_separators = [
+            LogicalSeparator(after_id="class"),
+            LogicalSeparator(left_ids=("death_kills", "win_plus_kills"), right_ids=("eden_kills", "amon_kills", "primal_death_kills")),
+        ]
         table.pinned_rows = 1 if self.show_totals else 0
         hi = self.model.completion_highlights(self.current_selection)
         fields = [None, "death_clears", "win_plus_clears", "eden_clears", "amon_clears", "primal_death_clears"]

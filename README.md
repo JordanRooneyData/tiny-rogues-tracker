@@ -1,12 +1,16 @@
-# Tiny Rogues Tracker v0.4.11
+# Tiny Rogues Tracker v0.5.0
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.11 includes
+## What v0.5.0 includes
 
-- Build-mapping hotfix: independently revalidated both `Player.PlayerClassId` and `Enemies.BossId` from the matching IL2CPP build instead of trusting old route inference.
-- Corrected boss IDs from the build: `Amon = 23`, `Eden = 24`, `MegaPrimalDeath = 25`, `MegaAmon = 26`, `MegaEden = 27`, and `MegaDeath = 46`.
-- A C16 Amon clear now counts as Amon, not Eden; Eden/Amon are not treated as a guessed swap, and mega/base final boss pairs are explicitly grouped.
+- Screenshot Friendly Mode compact captures now switch into a dedicated screenshot-only layout: compact table, large fitted title, and one compact **Exit SFM** button.
+- Compact SFM automatically shrinks the app window to the selected table/title and restores the exact previous window geometry/state when leaving compact mode.
+- The yellow SFM selection perimeter is drawn from the actual visible table-content geometry instead of the unused table-widget canvas.
+- Cinder Highscores rewards full C16 deity completion (`Eden`, `Amon`, and `Primal Death`) with a yellow crowned visible class label such as `👑 Chaos`, without changing sorting/export identity.
+- Logical thick dividers now use the shared pink/magenta accent and dynamically follow Class, non-deity/deity, deity/ordinary, and Top Floor Beaten boundaries through reversal, sorting, SFM, and compact restore.
+- Build-mapping hotfix remains: independently revalidated both `Player.PlayerClassId` and `Enemies.BossId` from the matching IL2CPP build instead of trusting old route inference.
+- Corrected boss IDs from the build remain: `Amon = 23`, `Eden = 24`, `MegaPrimalDeath = 25`, `MegaAmon = 26`, `MegaEden = 27`, and `MegaDeath = 46`.
 - Universal save/class mapping repair remains: `RunRecords[].PlayedClass` uses the verified IL2CPP `Player.PlayerClassId` map for the current build, including `26 = Chaos` and `34 = Santa`.
 - `CinderStreakHistory` and Doppelganger variation history are separated from PlayedClass IDs, so long history arrays no longer create phantom `Class ID 35+` rows or attach historical Death clears to the wrong class.
 - Unknown/future builds fail safely: actual unknown `PlayedClass` values remain visible as diagnostics, while unverified history-only slots are quarantined instead of confidently named.
@@ -50,7 +54,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.11.exe
+dist\TinyRoguesTracker-v0.5.0.exe
 ```
 
 ## Installer
@@ -99,7 +103,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.11`.
+7. Publishes artifacts for tagged releases like `v0.5.0`.
 
 ## Development validation
 

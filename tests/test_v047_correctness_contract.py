@@ -25,7 +25,7 @@ def run(cls=0, cinder=0, floor=0, bosses=None):
 
 
 def test_version_is_047():
-    assert __version__ == "0.4.11"
+    assert __version__ == "0.5.0"
 
 
 def test_death_and_win_rates_use_displayed_deaths_mode_endpoints_only():
