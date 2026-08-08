@@ -1,12 +1,13 @@
-# Tiny Rogues Tracker v0.4.6
+# Tiny Rogues Tracker v0.4.6.1
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.6 includes
+## What v0.4.6.1 includes
 
 - Kill Counts cleanup: removed the `ALL/Cx Runs`, `ALL/Cx Death Kill Rate`, and `ALL/Cx Win+ Rate` columns from the table/export surface.
 - Kill Counts headings now reflect the active filter directly, such as `ALL Death Kills`, `C16 Eden Kills`, and `C10–16 Primal Death Kills`.
 - Cinder filter buttons now show selected state persistently; hover no longer mimics selection, and Shift-click range guidance is displayed beside the filter.
+- Startup update hotfix: background release checks now marshal results back to the Qt GUI thread before showing prompts, fixing the missing boot prompt seen when updating from v0.4.5.
 - SFM range selection now uses shift-click row/column header ranges, subtle header anchor styling, and a compact **X** to leave selection without creating a mini-table.
 - SFM first-column auto-selection now applies only when the first column is a class/row-label column; Survival Breakdown no longer auto-selects ordinary data column `C0`.
 - Survival Breakdown tables add a final **Totals** column plus fixed bottom **Death Kill Rate** and **Win+ Rate** rows.
@@ -42,7 +43,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.6.exe
+dist\TinyRoguesTracker-v0.4.6.1.exe
 ```
 
 ## Installer
@@ -91,7 +92,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.6`.
+7. Publishes artifacts for tagged releases like `v0.4.6.1`.
 
 ## Development validation
 

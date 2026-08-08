@@ -27,7 +27,7 @@ def save_with_runs(runs, streaks_len=36):
 
 
 def test_version_is_0431():
-    assert __version__ == "0.4.6"
+    assert __version__ == "0.4.6.1"
 
 
 def test_blank_save_filter_and_single_nonblank_auto_selection(tmp_path):

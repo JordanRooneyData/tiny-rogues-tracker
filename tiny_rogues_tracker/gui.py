@@ -391,6 +391,10 @@ class TrackerApp(QMainWindow):
         self.current_selection = CinderSelection.all()
         self.cinder_anchor: int | None = None
         self.update_check_started = False
+        self.pending_update_result: tuple[UpdateInfo | None, Exception | None] | None = None
+        self.update_result_timer = QTimer(self)
+        self.update_result_timer.setInterval(250)
+        self.update_result_timer.timeout.connect(self._drain_update_result)
         self.show_totals = False
         self.survival_mode = DEATHS_MODE
         self.survival_picker_widget = None
@@ -680,12 +684,26 @@ class TrackerApp(QMainWindow):
         if self.update_check_started:
             return
         self.update_check_started = True
+        self.pending_update_result = None
+        self.update_result_timer.start()
         def done(info: UpdateInfo | None, err: Exception | None):
-            if info:
-                QTimer.singleShot(0, lambda: self._offer_update(info, manual=False))
-            elif err:
-                QTimer.singleShot(0, lambda: self.statusBar().showMessage(f"Update check failed; running current version. {err}", 8000))
+            # Worker-thread callback: store only. The GUI thread drains this via QTimer.
+            # Context-free QTimer.singleShot from a Python worker can bind to the worker
+            # thread with no Qt event loop, which drops the startup prompt silently.
+            self.pending_update_result = (info, err)
         check_async(done)
+
+    def _drain_update_result(self):
+        result = self.pending_update_result
+        if result is None:
+            return
+        self.update_result_timer.stop()
+        self.pending_update_result = None
+        info, err = result
+        if info:
+            self._offer_update(info, manual=False)
+        elif err:
+            self.statusBar().showMessage(f"Update check failed; running current version. {err}", 8000)
 
     def manual_check_for_updates(self):
         """Visible manual Check for updates action using the same installer path."""

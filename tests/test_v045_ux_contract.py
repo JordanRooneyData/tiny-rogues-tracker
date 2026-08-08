@@ -26,7 +26,7 @@ def run(cls, cinder, bosses):
 
 
 def test_version_is_045_and_survival_breakdown_label():
-    assert __version__ == "0.4.6"
+    assert __version__ == "0.4.6.1"
     assert VIEW_SURVIVAL_BREAKDOWN == "Survival Breakdown"
 
 
@@ -36,10 +36,13 @@ def test_automatic_update_check_is_deferred_once_and_manual_no_update_remains_vi
     assert "if self.update_check_started:" in gui
     assert "self.update_check_started = True" in gui
     assert "check_async(done)" in gui
+    assert "self.pending_update_result = (info, err)" in gui
+    assert "QTimer.singleShot(0, lambda: self._offer_update" not in gui
     auto = gui.split("def _check_updates", 1)[1].split("def manual_check_for_updates", 1)[0]
     manual = gui.split("def manual_check_for_updates", 1)[1].split("def _offer_update", 1)[0]
     assert "QMessageBox.information" not in auto
     assert "statusBar().showMessage" in auto
+    assert "self._offer_update(info, manual=False)" in auto
     assert "Tiny Rogues Tracker is up to date" in manual
     assert "QMessageBox.information" in manual
 
