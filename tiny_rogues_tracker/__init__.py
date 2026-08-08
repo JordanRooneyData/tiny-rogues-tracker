@@ -1,3 +1,3 @@
-__version__ = "0.4.10"
+__version__ = "0.4.11"
 APP_NAME = "Tiny Rogues Tracker"
 GITHUB_REPO = "JordanRooneyData/tiny-rogues-tracker"

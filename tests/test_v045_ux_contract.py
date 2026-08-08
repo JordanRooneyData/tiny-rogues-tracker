@@ -26,7 +26,7 @@ def run(cls, cinder, bosses):
 
 
 def test_version_is_045_and_survival_breakdown_label():
-    assert __version__ == "0.4.10"
+    assert __version__ == "0.4.11"
     assert VIEW_SURVIVAL_BREAKDOWN == "Survival Breakdown"
 
 

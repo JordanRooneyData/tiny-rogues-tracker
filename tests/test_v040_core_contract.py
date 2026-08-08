@@ -27,7 +27,7 @@ def save_with_runs(runs, streaks_len=36):
 
 
 def test_version_is_0431():
-    assert __version__ == "0.4.10"
+    assert __version__ == "0.4.11"
 
 
 def test_blank_save_filter_and_single_nonblank_auto_selection(tmp_path):
@@ -53,8 +53,8 @@ def test_death_win_plus_and_route_separation():
     druid = model.character_records_by_name["Druid"]
     ninja = model.character_records_by_name["Ninja"]
     alchemist = model.character_records_by_name["Alchemist"]
-    assert druid.best_death == 12 and druid.best_eden == 12 and druid.best_win_plus == 12
-    assert ninja.best_death == 16 and ninja.best_amon == 16 and ninja.best_win_plus == 16
+    assert druid.best_death == 12 and druid.best_amon == 12 and druid.best_win_plus == 12
+    assert ninja.best_death == 16 and ninja.best_eden == 16 and ninja.best_win_plus == 16
     assert alchemist.best_primal_death == 14 and alchemist.best_win_plus == 14
 
 
@@ -90,8 +90,8 @@ def test_sort_cycle_numeric_and_restore_default():
 def test_gold_highlighting_ties_and_zero_only_columns():
     model = analyze_save(SAMPLE, IDS)
     highlights = model.character_record_highlights()
-    assert ("Druid", "best_eden") in highlights
-    assert ("Ninja", "best_amon") in highlights
+    assert ("Druid", "best_amon") in highlights
+    assert ("Ninja", "best_eden") in highlights
     assert not any(col == "best_primal_death" and name != "Alchemist" for name, col in highlights)
     zero_column = [(name, col) for name, col in highlights if col == "best_primal_death" and name == "TheHero"]
     assert not zero_column

@@ -114,9 +114,9 @@ Recent cinder levels: 12,14,16
 Death clear: bossesKilled contains Death boss ID 18. Win+ requires a final route boss kill (Eden/Amon/PrimalDeath); reaching Bahamut/Tiamat/Geryon or their floor alone is not Win+.
 FloorReached is zero-based in the save; this report displays in-game floor as FloorReached + 1.
 Reconciliation: RunRecords are used for per-run route counts. CinderStreakHistory only supplements historical Death bests where deathKills proves clears absent from RunRecords; it is not double-counted as extra runs.
-Eden: completion boss IDs Eden (23); route-entry/reached-not-clear IDs Bahamut (21).
-Amon: completion boss IDs Amon (24); route-entry/reached-not-clear IDs Geryon (22).
-Primal Death: completion boss IDs Primal Death (19); route-entry/reached-not-clear IDs Tiamat (20).
+Eden: completion boss IDs Eden (24), MegaEden (27); route-entry/reached-not-clear IDs Bahamut (22).
+Amon: completion boss IDs Amon (23), MegaAmon (26); route-entry/reached-not-clear IDs Tiamat (21).
+Primal Death: completion boss IDs PrimalDeath (19), MegaPrimalDeath (25); route-entry/reached-not-clear IDs Geryon (20).
 Observed boss IDs in raw runs: 1,18,19,20,21,22,23,24
-Unresolved character mappings: 34, 35
+No unresolved normal character mappings for the bundled current build; unknown future PlayedClass IDs remain visible if present.
 This tool is read-only. It never writes to the Tiny Rogues save file. It writes only report files you choose.

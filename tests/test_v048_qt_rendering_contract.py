@@ -71,7 +71,7 @@ def count_pixels_close(image, expected_hex, tolerance=38):
 
 
 def test_version_is_048():
-    assert __version__ == "0.4.10"
+    assert __version__ == "0.4.11"
 
 
 def test_selected_column_and_row_headers_visibly_render_yellow_on_qheaderview():

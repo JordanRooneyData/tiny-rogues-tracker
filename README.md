@@ -1,10 +1,13 @@
-# Tiny Rogues Tracker v0.4.10
+# Tiny Rogues Tracker v0.4.11
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.10 includes
+## What v0.4.11 includes
 
-- Universal save/class mapping repair: `RunRecords[].PlayedClass` now uses the verified IL2CPP `Player.PlayerClassId` map for the current build, including `26 = Chaos` and `34 = Santa`.
+- Build-mapping hotfix: independently revalidated both `Player.PlayerClassId` and `Enemies.BossId` from the matching IL2CPP build instead of trusting old route inference.
+- Corrected boss IDs from the build: `Amon = 23`, `Eden = 24`, `MegaPrimalDeath = 25`, `MegaAmon = 26`, `MegaEden = 27`, and `MegaDeath = 46`.
+- A C16 Amon clear now counts as Amon, not Eden; Eden/Amon are not treated as a guessed swap, and mega/base final boss pairs are explicitly grouped.
+- Universal save/class mapping repair remains: `RunRecords[].PlayedClass` uses the verified IL2CPP `Player.PlayerClassId` map for the current build, including `26 = Chaos` and `34 = Santa`.
 - `CinderStreakHistory` and Doppelganger variation history are separated from PlayedClass IDs, so long history arrays no longer create phantom `Class ID 35+` rows or attach historical Death clears to the wrong class.
 - Unknown/future builds fail safely: actual unknown `PlayedClass` values remain visible as diagnostics, while unverified history-only slots are quarantined instead of confidently named.
 - Added copyable mapping diagnostics for future bug reports without exposing raw save contents.
@@ -47,7 +50,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.10.exe
+dist\TinyRoguesTracker-v0.4.11.exe
 ```
 
 ## Installer
@@ -96,7 +99,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.10`.
+7. Publishes artifacts for tagged releases like `v0.4.11`.
 
 ## Development validation
 
@@ -109,10 +112,10 @@ Linux note: PyInstaller cannot cross-build a real Windows `.exe` from Linux. The
 
 ## Mapping data
 
-The bundled current-build class mapping was extracted from `Player.PlayerClassId` in IL2CPP metadata and stored in:
+The bundled current-build class and boss mappings were extracted from IL2CPP metadata and stored in:
 
 ```text
 tiny_rogues_tracker/data/tiny_rogues_class_mapping_c66eb2fb_e0d61b7f.json
 ```
 
-For this build the normal PlayedClass roster is IDs `0..34`; `26` is `Chaos` and `34` is `Santa`. `CinderStreakHistory` is treated as a separate history namespace. Only verified core slots augment historical Death clears; Doppelganger variation/reserved tail slots are quarantined from the normal roster.
+For this build the normal PlayedClass roster is IDs `0..34`; `26` is `Chaos` and `34` is `Santa`. The boss route finals now follow the recovered `Enemies.BossId` enum plus native achievement checks: Amon `23`/MegaAmon `26`, Eden `24`/MegaEden `27`, PrimalDeath `19`/MegaPrimalDeath `25`, and Death `18`/MegaDeath `46`. `CinderStreakHistory` is treated as a separate history namespace. Only verified core slots augment historical Death clears; Doppelganger variation/reserved tail slots are quarantined from the normal roster.

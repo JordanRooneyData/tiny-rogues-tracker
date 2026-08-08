@@ -1,357 +1,379 @@
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "game": "Tiny Rogues",
   "provenance": {
-    "status": "enriched_from_google_drive_save_folder_and_il2cpp_metadata_strings",
-    "note": "Generated from restored Google Drive archive Dollans cinder tracker files.rar. global-metadata.dat yielded enum names for player classes, bosses, cinder modifiers, gifts, and objectives. GameAssembly.dll in the archive extracted short by 207,360 bytes, so no binary disassembly was trusted; tracker remains read-only.",
+    "status": "verified_from_il2cpp_metadata_enums_and_native_boss_checks",
+    "note": "v0.4.11 independently revalidated Player.PlayerClassId and Enemies.BossId from the matching IL2CPP global-metadata.dat defaults. Boss route final IDs were validated against native AchievementManager checks; CinderStreakHistory remains a separate namespace with variation/reserved tail slots quarantined.",
     "source_paths": [
-      "Tiny Rogues/GameAssembly.dll",
-      "Tiny Rogues/Tiny Rogues_Data/il2cpp_data/Metadata/global-metadata.dat",
-      "C:/Users/jorda/AppData/LocalLow/RubyDev/Tiny Rogues"
+      "/root/Dollans cinder tracker files/GameAssembly.dll",
+      "/root/Dollans cinder tracker files/global-metadata.dat"
     ]
   },
   "characters": {
     "0": {
       "name": "TheHero",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "the_hero"
     },
     "1": {
       "name": "Knight",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "knight"
     },
     "2": {
       "name": "Sorcerer",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "sorcerer"
     },
     "3": {
       "name": "Ranger",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "ranger"
     },
     "4": {
       "name": "Bandit",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "bandit"
     },
     "5": {
       "name": "Cleric",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "cleric"
     },
     "6": {
       "name": "Pyromancer",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "pyromancer"
     },
     "7": {
       "name": "Thief",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "thief"
     },
     "8": {
       "name": "Wanderer",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "wanderer"
     },
     "9": {
       "name": "Warrior",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "warrior"
     },
     "10": {
       "name": "Deprived",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "deprived"
     },
     "11": {
       "name": "Gunslinger",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "gunslinger"
     },
     "12": {
       "name": "Doppelganger",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "doppelganger"
     },
     "13": {
       "name": "Wizard",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "wizard"
     },
     "14": {
       "name": "Soldier",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "soldier"
     },
     "15": {
       "name": "Bard",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "bard"
     },
     "16": {
       "name": "Mystic",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "mystic"
     },
     "17": {
       "name": "Monk",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "monk"
     },
     "18": {
       "name": "Paladin",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "paladin"
     },
     "19": {
       "name": "SuperHero",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "super_hero"
     },
     "20": {
       "name": "Necromancer",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "necromancer"
     },
     "21": {
       "name": "Druid",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "druid"
     },
     "22": {
       "name": "Barbarian",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "barbarian"
     },
     "23": {
       "name": "Ninja",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "ninja"
     },
     "24": {
       "name": "DemonHunter",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "demon_hunter"
     },
     "25": {
       "name": "Cyborg",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "cyborg"
     },
     "26": {
-      "name": "Dancer",
-      "status": "metadata_enum"
+      "name": "Chaos",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "chaos"
     },
     "27": {
-      "name": "Dragoon",
-      "status": "metadata_enum"
+      "name": "Dancer",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "dancer"
     },
     "28": {
-      "name": "Esper",
-      "status": "metadata_enum"
+      "name": "Dragoon",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "dragoon"
     },
     "29": {
-      "name": "Jester",
-      "status": "metadata_enum"
+      "name": "Esper",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "esper"
     },
     "30": {
-      "name": "Pirate",
-      "status": "metadata_enum"
+      "name": "Jester",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "jester"
     },
     "31": {
-      "name": "Samurai",
-      "status": "metadata_enum"
+      "name": "Pirate",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "pirate"
     },
     "32": {
-      "name": "Alchemist",
-      "status": "metadata_enum"
+      "name": "Samurai",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "samurai"
     },
     "33": {
-      "name": "Santa",
-      "status": "metadata_enum"
+      "name": "Alchemist",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "alchemist"
     },
     "34": {
-      "name": "Class ID 34",
-      "status": "observed_unresolved"
-    },
-    "35": {
-      "name": "Class ID 35",
-      "status": "observed_unresolved"
+      "name": "Santa",
+      "status": "il2cpp_enum_default_verified",
+      "logical_id": "santa"
     }
   },
   "bosses": {
     "0": {
       "name": "Minotaur",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "1": {
       "name": "SpiderQueen",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "2": {
       "name": "Lich",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "3": {
       "name": "Banshee",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "4": {
       "name": "QueenBee",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "5": {
       "name": "Mandrake",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "6": {
       "name": "Gargoyles",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "7": {
       "name": "Vampire",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "8": {
       "name": "Sphinx",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "9": {
       "name": "Pharaoh",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "10": {
       "name": "Kraken",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "11": {
       "name": "Neptune",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "12": {
       "name": "RedDragon",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "13": {
       "name": "Phoenix",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "14": {
       "name": "Cerberus",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "15": {
       "name": "Succubus",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "16": {
       "name": "KingOoze",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "17": {
       "name": "MindFlamer",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "18": {
       "name": "Death",
-      "status": "metadata_enum"
+      "status": "il2cpp_enum_default_verified"
     },
     "19": {
-      "name": "Primal Death",
-      "status": "save_route_inferred",
-      "note": "metadata_enum_name_was_MegaPrimalDeath; observed as final boss in post-Death pair [20,19]",
-      "metadata_name": "MegaPrimalDeath"
+      "name": "PrimalDeath",
+      "status": "il2cpp_enum_default_verified"
     },
     "20": {
-      "name": "Tiamat",
-      "status": "save_route_inferred",
-      "note": "observed as entry/paired boss before Primal Death in post-Death pair [20,19]",
-      "metadata_name": "MegaAmon"
+      "name": "Geryon",
+      "status": "il2cpp_enum_default_verified"
     },
     "21": {
-      "name": "Bahamut",
-      "status": "save_route_inferred",
-      "note": "observed as entry/paired boss before Eden in post-Death pair [21,23]",
-      "metadata_name": "MegaEden"
+      "name": "Tiamat",
+      "status": "il2cpp_enum_default_verified"
     },
     "22": {
-      "name": "Geryon",
-      "status": "save_route_inferred",
-      "note": "observed as entry/paired boss before Amon in post-Death pair [22,24]",
-      "metadata_name": "GoblinKing"
+      "name": "Bahamut",
+      "status": "il2cpp_enum_default_verified"
     },
     "23": {
-      "name": "Eden",
-      "status": "save_route_inferred",
-      "note": "observed as final boss in High Heavens/Heaven pair [21,23]; metadata enum name was MoleKing",
-      "metadata_name": "MoleKing"
+      "name": "Amon",
+      "status": "il2cpp_enum_default_verified"
     },
     "24": {
-      "name": "Amon",
-      "status": "save_route_inferred",
-      "note": "observed as final boss in Burning Hells/Hell pair [22,24]; metadata enum name was Troll",
-      "metadata_name": "Troll"
+      "name": "Eden",
+      "status": "il2cpp_enum_default_verified"
     },
     "25": {
-      "name": "ShamblingMound",
-      "status": "metadata_enum"
+      "name": "MegaPrimalDeath",
+      "status": "il2cpp_enum_default_verified"
     },
     "26": {
-      "name": "ThePiedPiper",
-      "status": "metadata_enum"
+      "name": "MegaAmon",
+      "status": "il2cpp_enum_default_verified"
     },
     "27": {
-      "name": "BookGolem",
-      "status": "metadata_enum"
+      "name": "MegaEden",
+      "status": "il2cpp_enum_default_verified"
     },
     "28": {
-      "name": "IceDragon",
-      "status": "metadata_enum"
+      "name": "GoblinKing",
+      "status": "il2cpp_enum_default_verified"
     },
     "29": {
-      "name": "TheKingsGuard",
-      "status": "metadata_enum"
+      "name": "MoleKing",
+      "status": "il2cpp_enum_default_verified"
     },
     "30": {
-      "name": "ArcaneGolem",
-      "status": "metadata_enum"
+      "name": "Troll",
+      "status": "il2cpp_enum_default_verified"
     },
     "31": {
-      "name": "EvilOak",
-      "status": "metadata_enum"
+      "name": "ShamblingMound",
+      "status": "il2cpp_enum_default_verified"
     },
     "32": {
-      "name": "RockGolem",
-      "status": "metadata_enum"
+      "name": "ThePiedPiper",
+      "status": "il2cpp_enum_default_verified"
     },
     "33": {
-      "name": "TangleMawJaw",
-      "status": "metadata_enum"
+      "name": "BookGolem",
+      "status": "il2cpp_enum_default_verified"
     },
     "34": {
-      "name": "VerminKing",
-      "status": "metadata_enum"
+      "name": "IceDragon",
+      "status": "il2cpp_enum_default_verified"
     },
     "35": {
-      "name": "JoustingChampion",
-      "status": "metadata_enum"
+      "name": "TheKingsGuard",
+      "status": "il2cpp_enum_default_verified"
     },
     "36": {
-      "name": "LibraryGuardian",
-      "status": "metadata_enum"
+      "name": "ArcaneGolem",
+      "status": "il2cpp_enum_default_verified"
     },
     "37": {
-      "name": "CommanderWalrus",
-      "status": "metadata_enum"
+      "name": "EvilOak",
+      "status": "il2cpp_enum_default_verified"
     },
     "38": {
-      "name": "TheArchPontiff",
-      "status": "metadata_enum"
+      "name": "RockGolem",
+      "status": "il2cpp_enum_default_verified"
     },
     "39": {
-      "name": "TheAbomination",
-      "status": "metadata_enum"
+      "name": "TangleMawJaw",
+      "status": "il2cpp_enum_default_verified"
     },
     "40": {
-      "name": "MegaDeath",
-      "status": "metadata_enum"
+      "name": "VerminKing",
+      "status": "il2cpp_enum_default_verified"
     },
     "41": {
-      "name": "Boss ID 41",
-      "status": "observed_unresolved"
+      "name": "JoustingChampion",
+      "status": "il2cpp_enum_default_verified"
     },
     "42": {
-      "name": "Boss ID 42",
-      "status": "observed_unresolved"
+      "name": "LibraryGuardian",
+      "status": "il2cpp_enum_default_verified"
     },
     "43": {
-      "name": "Boss ID 43",
-      "status": "observed_unresolved"
+      "name": "CommanderWalrus",
+      "status": "il2cpp_enum_default_verified"
     },
     "44": {
-      "name": "Boss ID 44",
-      "status": "observed_unresolved"
+      "name": "TheArchPontiff",
+      "status": "il2cpp_enum_default_verified"
     },
     "45": {
-      "name": "Boss ID 45",
-      "status": "observed_unresolved"
+      "name": "TheAbomination",
+      "status": "il2cpp_enum_default_verified"
+    },
+    "46": {
+      "name": "MegaDeath",
+      "status": "il2cpp_enum_default_verified"
     }
   },
   "routes": {
@@ -359,9 +381,10 @@
       "name": "Death",
       "label": "Death",
       "completion_boss_ids": [
-        18
+        18,
+        46
       ],
-      "source": "CinderStreakHistory deathKills/highestUsedCinderThisRun plus RunRecords boss 18"
+      "source": "IL2CPP BossId enum: Death=18 and MegaDeath=46. Normal and mega counters remain distinguishable in save data, but the tracker Death-clear bucket treats both as Death final clears."
     },
     "law": {
       "name": "Law / Shadow Planes",
@@ -370,31 +393,34 @@
         20
       ],
       "completion_boss_ids": [
-        19
+        19,
+        25
       ],
-      "source": "Observed post-Death save pair [20,19]; public guide places Primal Death in the Shadow Planes/Law route."
+      "source": "Native achievement check groups PrimalDeath=19 and MegaPrimalDeath=25 as Primal Death finals. Entry boss is dragon-floor evidence only, not a Win+ condition."
     },
     "heaven": {
       "name": "Heaven / High Heavens",
       "label": "Heaven",
       "entry_boss_ids": [
-        21
+        22
       ],
       "completion_boss_ids": [
-        23
+        24,
+        27
       ],
-      "source": "Observed post-Death save pair [21,23]; public guide places Eden in the High Heavens/Heaven route."
+      "source": "Native achievement check groups Eden=24 and MegaEden=27 as Eden finals. Entry boss is dragon-floor evidence only, not a Win+ condition."
     },
     "hell": {
       "name": "Hell / Burning Hells",
       "label": "Hell",
       "entry_boss_ids": [
-        22
+        21
       ],
       "completion_boss_ids": [
-        24
+        23,
+        26
       ],
-      "source": "Observed post-Death save pair [22,24]; public guide places Amon in the Burning Hells/Hell route."
+      "source": "Native achievement check groups Amon=23 and MegaAmon=26 as Amon finals. Entry boss is dragon-floor evidence only, not a Win+ condition."
     }
   },
   "cinder_modifiers": {
@@ -590,5 +616,289 @@
       "name": "Meta Perk ID 0",
       "status": "placeholder"
     }
-  }
+  },
+  "character_roster": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34
+  ],
+  "cinder_history_slots": {
+    "0": 0,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "13": 13,
+    "14": 14,
+    "15": 15,
+    "16": 16,
+    "17": 17,
+    "18": 18,
+    "19": 19,
+    "20": 20,
+    "21": 21,
+    "22": 22,
+    "23": 23,
+    "24": 24,
+    "25": 25,
+    "26": 26,
+    "27": 27,
+    "28": 28,
+    "29": 29,
+    "30": 30,
+    "31": 31,
+    "32": 32,
+    "33": 33,
+    "34": 34
+  },
+  "class_mapping_adapters": [
+    {
+      "adapter_id": "tiny-rogues-il2cpp-playerclassid-c66eb2fb-e0d61b7f",
+      "status": "verified_current_build",
+      "build_fingerprint": {
+        "game_assembly_sha256": "c66eb2fb70ce78e65da227b245cc43a5e92f2ec135bff721629d4c0485844369",
+        "global_metadata_sha256": "e0d61b7f2173305e081fa0b063ec1fba2a98564262b4dff9ad033aac537a261c"
+      },
+      "source_method": "Parsed Player.PlayerClassId enum default values from IL2CPP global-metadata.dat; decoded enum defaults verify IDs 0-34 including Chaos=26 and Santa=34.",
+      "played_class_ids": {
+        "0": "TheHero",
+        "1": "Knight",
+        "2": "Sorcerer",
+        "3": "Ranger",
+        "4": "Bandit",
+        "5": "Cleric",
+        "6": "Pyromancer",
+        "7": "Thief",
+        "8": "Wanderer",
+        "9": "Warrior",
+        "10": "Deprived",
+        "11": "Gunslinger",
+        "12": "Doppelganger",
+        "13": "Wizard",
+        "14": "Soldier",
+        "15": "Bard",
+        "16": "Mystic",
+        "17": "Monk",
+        "18": "Paladin",
+        "19": "SuperHero",
+        "20": "Necromancer",
+        "21": "Druid",
+        "22": "Barbarian",
+        "23": "Ninja",
+        "24": "DemonHunter",
+        "25": "Cyborg",
+        "26": "Chaos",
+        "27": "Dancer",
+        "28": "Dragoon",
+        "29": "Esper",
+        "30": "Jester",
+        "31": "Pirate",
+        "32": "Samurai",
+        "33": "Alchemist",
+        "34": "Santa"
+      },
+      "logical_ids": {
+        "0": "the_hero",
+        "1": "knight",
+        "2": "sorcerer",
+        "3": "ranger",
+        "4": "bandit",
+        "5": "cleric",
+        "6": "pyromancer",
+        "7": "thief",
+        "8": "wanderer",
+        "9": "warrior",
+        "10": "deprived",
+        "11": "gunslinger",
+        "12": "doppelganger",
+        "13": "wizard",
+        "14": "soldier",
+        "15": "bard",
+        "16": "mystic",
+        "17": "monk",
+        "18": "paladin",
+        "19": "super_hero",
+        "20": "necromancer",
+        "21": "druid",
+        "22": "barbarian",
+        "23": "ninja",
+        "24": "demon_hunter",
+        "25": "cyborg",
+        "26": "chaos",
+        "27": "dancer",
+        "28": "dragoon",
+        "29": "esper",
+        "30": "jester",
+        "31": "pirate",
+        "32": "samurai",
+        "33": "alchemist",
+        "34": "santa"
+      },
+      "core_cinder_history_slots": {
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9,
+        "10": 10,
+        "11": 11,
+        "12": 12,
+        "13": 13,
+        "14": 14,
+        "15": 15,
+        "16": 16,
+        "17": 17,
+        "18": 18,
+        "19": 19,
+        "20": 20,
+        "21": 21,
+        "22": 22,
+        "23": 23,
+        "24": 24,
+        "25": 25,
+        "26": 26,
+        "27": 27,
+        "28": 28,
+        "29": 29,
+        "30": 30,
+        "31": 31,
+        "32": 32,
+        "33": 33,
+        "34": 34
+      },
+      "history_notes": {
+        "cinder_streak_history": "Separate save namespace. For this build only slots 0-34 are treated as verified core class history slots.",
+        "doppelganger_variation_history": "Slots beyond the verified core range are quarantined as variation/reserved history unless a future adapter proves their names/order.",
+        "known_validation": "Tiner PlayedClass ID 26 resolves to Chaos; ID 34 resolves to Santa."
+      }
+    }
+  ],
+  "boss_mapping_adapters": [
+    {
+      "adapter_id": "tiny-rogues-il2cpp-bossid-c66eb2fb-e0d61b7f",
+      "status": "verified_current_build",
+      "build_fingerprint": {
+        "game_assembly_sha256": "c66eb2fb70ce78e65da227b245cc43a5e92f2ec135bff721629d4c0485844369",
+        "global_metadata_sha256": "e0d61b7f2173305e081fa0b063ec1fba2a98564262b4dff9ad033aac537a261c"
+      },
+      "source_method": "Parsed Enemies.BossId enum default values from IL2CPP global-metadata.dat and validated route-final pair groupings with native AchievementManager.CheckIfDoppelgangerDefeatedEdenAmonPrimalDeath immediates in GameAssembly.dll.",
+      "boss_ids": {
+        "0": "Minotaur",
+        "1": "SpiderQueen",
+        "2": "Lich",
+        "3": "Banshee",
+        "4": "QueenBee",
+        "5": "Mandrake",
+        "6": "Gargoyles",
+        "7": "Vampire",
+        "8": "Sphinx",
+        "9": "Pharaoh",
+        "10": "Kraken",
+        "11": "Neptune",
+        "12": "RedDragon",
+        "13": "Phoenix",
+        "14": "Cerberus",
+        "15": "Succubus",
+        "16": "KingOoze",
+        "17": "MindFlamer",
+        "18": "Death",
+        "19": "PrimalDeath",
+        "20": "Geryon",
+        "21": "Tiamat",
+        "22": "Bahamut",
+        "23": "Amon",
+        "24": "Eden",
+        "25": "MegaPrimalDeath",
+        "26": "MegaAmon",
+        "27": "MegaEden",
+        "28": "GoblinKing",
+        "29": "MoleKing",
+        "30": "Troll",
+        "31": "ShamblingMound",
+        "32": "ThePiedPiper",
+        "33": "BookGolem",
+        "34": "IceDragon",
+        "35": "TheKingsGuard",
+        "36": "ArcaneGolem",
+        "37": "EvilOak",
+        "38": "RockGolem",
+        "39": "TangleMawJaw",
+        "40": "VerminKing",
+        "41": "JoustingChampion",
+        "42": "LibraryGuardian",
+        "43": "CommanderWalrus",
+        "44": "TheArchPontiff",
+        "45": "TheAbomination",
+        "46": "MegaDeath"
+      },
+      "route_final_groups": {
+        "death": [
+          18,
+          46
+        ],
+        "primal_death": [
+          19,
+          25
+        ],
+        "amon": [
+          23,
+          26
+        ],
+        "eden": [
+          24,
+          27
+        ]
+      },
+      "native_validation": {
+        "primal_death": "BossKillCountWithClass checks 19 and 25",
+        "amon": "BossKillCountWithClass checks 23 and 26",
+        "eden": "BossKillCountWithClass checks 24 and 27"
+      }
+    }
+  ]
 }

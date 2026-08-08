@@ -11,10 +11,25 @@ from typing import Any, Iterable
 from . import __version__
 
 DEATH_ID = 18
-EDEN_ID = 23
-AMON_ID = 24
+MEGA_DEATH_ID = 46
+DEATH_IDS = {DEATH_ID, MEGA_DEATH_ID}
+EDEN_ID = 24
+MEGA_EDEN_ID = 27
+EDEN_IDS = {EDEN_ID, MEGA_EDEN_ID}
+AMON_ID = 23
+MEGA_AMON_ID = 26
+AMON_IDS = {AMON_ID, MEGA_AMON_ID}
 PRIMAL_DEATH_ID = 19
-ROUTE_FINAL_IDS = {EDEN_ID: "Eden", AMON_ID: "Amon", PRIMAL_DEATH_ID: "Primal Death"}
+MEGA_PRIMAL_DEATH_ID = 25
+PRIMAL_DEATH_IDS = {PRIMAL_DEATH_ID, MEGA_PRIMAL_DEATH_ID}
+ROUTE_FINAL_IDS = {
+    EDEN_ID: "Eden",
+    MEGA_EDEN_ID: "Eden",
+    AMON_ID: "Amon",
+    MEGA_AMON_ID: "Amon",
+    PRIMAL_DEATH_ID: "Primal Death",
+    MEGA_PRIMAL_DEATH_ID: "Primal Death",
+}
 ROUTE_DRAGON_IDS = {20, 21, 22}
 VERSION = __version__
 
@@ -238,7 +253,7 @@ class RunMetric:
 
     @property
     def is_death(self) -> bool:
-        return DEATH_ID in self.bosses
+        return bool(self.bosses & DEATH_IDS)
 
     @property
     def route_boss(self) -> str | None:
@@ -545,7 +560,7 @@ def top_floor_beaten(run: dict[str, Any]) -> TopFloor:
         return TopFloor(12, "12 (Win+)", display_entered)
     if bosses & ROUTE_DRAGON_IDS:
         return TopFloor(11, "11 (Dragon)", display_entered)
-    if DEATH_ID in bosses:
+    if bosses & DEATH_IDS:
         return TopFloor(10, "10 (Death)", display_entered)
     regular = len([b for b in bosses if 0 <= b <= 17])
     rank = max(0, min(9, regular))

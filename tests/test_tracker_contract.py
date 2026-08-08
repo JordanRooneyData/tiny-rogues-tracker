@@ -37,14 +37,15 @@ def test_ids_json_has_required_sections_and_enriched_names():
         assert key in ids
     assert ids["characters"]["21"]["name"] == "Druid"
     assert ids["bosses"]["18"]["name"] == "Death"
-    assert ids["bosses"]["23"]["name"] == "Eden"
-    assert ids["bosses"]["24"]["name"] == "Amon"
-    assert ids["bosses"]["19"]["name"] == "Primal Death"
-    assert ids["bosses"]["20"]["name"] == "Tiamat"
-    assert ids["bosses"]["21"]["name"] == "Bahamut"
-    assert ids["bosses"]["22"]["name"] == "Geryon"
+    assert ids["bosses"]["23"]["name"] == "Amon"
+    assert ids["bosses"]["24"]["name"] == "Eden"
+    assert ids["bosses"]["19"]["name"] == "PrimalDeath"
+    assert ids["bosses"]["20"]["name"] == "Geryon"
+    assert ids["bosses"]["21"]["name"] == "Tiamat"
+    assert ids["bosses"]["22"]["name"] == "Bahamut"
+    assert ids["bosses"]["46"]["name"] == "MegaDeath"
     assert ids["cinder_modifiers"]["8"]["name"] == "Archnemesis"
-    assert ids["routes"]["heaven"]["completion_boss_ids"] == [23]
+    assert ids["routes"]["heaven"]["completion_boss_ids"] == [24, 27]
 
 
 def test_parser_generates_three_views_csv_and_does_not_modify_save():
@@ -72,9 +73,9 @@ def test_route_classification_contracts():
     assert "Ninja" in text and "16" in text
     assert "Alchemist" in text and "14" in text
     assert "reaching Bahamut/Tiamat/Geryon or their floor alone is not Win+" in text
-    assert "Eden: completion boss IDs Eden (23)" in text
-    assert "Amon: completion boss IDs Amon (24)" in text
-    assert "Primal Death: completion boss IDs Primal Death (19)" in text
+    assert "Eden: completion boss IDs Eden (24), MegaEden (27)" in text
+    assert "Amon: completion boss IDs Amon (23), MegaAmon (26)" in text
+    assert "Primal Death: completion boss IDs PrimalDeath (19), MegaPrimalDeath (25)" in text
     assert "FloorReached is zero-based" in text
 
 

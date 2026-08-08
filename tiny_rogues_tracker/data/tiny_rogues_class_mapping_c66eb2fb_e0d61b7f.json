@@ -5,7 +5,7 @@
     "game_assembly_sha256": "c66eb2fb70ce78e65da227b245cc43a5e92f2ec135bff721629d4c0485844369",
     "global_metadata_sha256": "e0d61b7f2173305e081fa0b063ec1fba2a98564262b4dff9ad033aac537a261c"
   },
-  "source_method": "Parsed Player.PlayerClassId enum from IL2CPP global-metadata.dat; verified same supplied GameAssembly.dll/global-metadata.dat hashes for Jordan/Tiner build.",
+  "source_method": "Parsed Player.PlayerClassId enum default values from IL2CPP global-metadata.dat; decoded enum defaults verify IDs 0-34 including Chaos=26 and Santa=34.",
   "played_class_ids": {
     "0": "TheHero",
     "1": "Knight",
@@ -121,5 +121,86 @@
     "cinder_streak_history": "Separate save namespace. For this build only slots 0-34 are treated as verified core class history slots.",
     "doppelganger_variation_history": "Slots beyond the verified core range are quarantined as variation/reserved history unless a future adapter proves their names/order.",
     "known_validation": "Tiner PlayedClass ID 26 resolves to Chaos; ID 34 resolves to Santa."
+  },
+  "boss_id_adapter": {
+    "adapter_id": "tiny-rogues-il2cpp-bossid-c66eb2fb-e0d61b7f",
+    "status": "verified_current_build",
+    "build_fingerprint": {
+      "game_assembly_sha256": "c66eb2fb70ce78e65da227b245cc43a5e92f2ec135bff721629d4c0485844369",
+      "global_metadata_sha256": "e0d61b7f2173305e081fa0b063ec1fba2a98564262b4dff9ad033aac537a261c"
+    },
+    "source_method": "Parsed Enemies.BossId enum default values from IL2CPP global-metadata.dat and validated route-final pair groupings with native AchievementManager.CheckIfDoppelgangerDefeatedEdenAmonPrimalDeath immediates in GameAssembly.dll.",
+    "boss_ids": {
+      "0": "Minotaur",
+      "1": "SpiderQueen",
+      "2": "Lich",
+      "3": "Banshee",
+      "4": "QueenBee",
+      "5": "Mandrake",
+      "6": "Gargoyles",
+      "7": "Vampire",
+      "8": "Sphinx",
+      "9": "Pharaoh",
+      "10": "Kraken",
+      "11": "Neptune",
+      "12": "RedDragon",
+      "13": "Phoenix",
+      "14": "Cerberus",
+      "15": "Succubus",
+      "16": "KingOoze",
+      "17": "MindFlamer",
+      "18": "Death",
+      "19": "PrimalDeath",
+      "20": "Geryon",
+      "21": "Tiamat",
+      "22": "Bahamut",
+      "23": "Amon",
+      "24": "Eden",
+      "25": "MegaPrimalDeath",
+      "26": "MegaAmon",
+      "27": "MegaEden",
+      "28": "GoblinKing",
+      "29": "MoleKing",
+      "30": "Troll",
+      "31": "ShamblingMound",
+      "32": "ThePiedPiper",
+      "33": "BookGolem",
+      "34": "IceDragon",
+      "35": "TheKingsGuard",
+      "36": "ArcaneGolem",
+      "37": "EvilOak",
+      "38": "RockGolem",
+      "39": "TangleMawJaw",
+      "40": "VerminKing",
+      "41": "JoustingChampion",
+      "42": "LibraryGuardian",
+      "43": "CommanderWalrus",
+      "44": "TheArchPontiff",
+      "45": "TheAbomination",
+      "46": "MegaDeath"
+    },
+    "route_final_groups": {
+      "death": [
+        18,
+        46
+      ],
+      "primal_death": [
+        19,
+        25
+      ],
+      "amon": [
+        23,
+        26
+      ],
+      "eden": [
+        24,
+        27
+      ]
+    },
+    "native_validation": {
+      "primal_death": "BossKillCountWithClass checks 19 and 25",
+      "amon": "BossKillCountWithClass checks 23 and 26",
+      "eden": "BossKillCountWithClass checks 24 and 27"
+    }
   }
 }
