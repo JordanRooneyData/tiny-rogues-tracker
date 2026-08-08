@@ -1,13 +1,20 @@
-# Tiny Rogues Tracker v0.4.5
+# Tiny Rogues Tracker v0.4.6
 
 Windows-first, read-only Tiny Rogues save tracker with a PySide6 desktop GUI.
 
-## What v0.4.5 includes
+## What v0.4.6 includes
 
 - Kill Counts cleanup: removed the `ALL/Cx Runs`, `ALL/Cx Death Kill Rate`, and `ALL/Cx Win+ Rate` columns from the table/export surface.
 - Kill Counts headings now reflect the active filter directly, such as `ALL Death Kills`, `C16 Eden Kills`, and `C10–16 Primal Death Kills`.
 - Cinder filter buttons now show selected state persistently; hover no longer mimics selection, and Shift-click range guidance is displayed beside the filter.
-- Screenshot Friendly Mode now auto-selects the first/Class column, recalculates AND-rule highlights immediately, and restores the full original table from the authoritative snapshot after mini-table mode.
+- SFM range selection now uses shift-click row/column header ranges, subtle header anchor styling, and a compact **X** to leave selection without creating a mini-table.
+- SFM first-column auto-selection now applies only when the first column is a class/row-label column; Survival Breakdown no longer auto-selects ordinary data column `C0`.
+- Survival Breakdown tables add a final **Totals** column plus fixed bottom **Death Kill Rate** and **Win+ Rate** rows.
+- Survival Breakdown includes compact row/column reverse controls; fixed rate rows stay pinned at the bottom.
+- Survival Breakdown SFM captures include **Class selected** and **Mode** context labels directly above the table.
+- Table sorting/restoration now preserves saved column widths and row heights rather than resizing from mini-table geometry.
+- Kill Counts cinder buttons now show a subtle shift-click range anchor.
+- Kill Counts Win+/Eden divider is painted as a border/delegate rather than inserted text, so it stays aligned through sorting/SFM.
 - Main menu separates prominent primary tracker views from subdued utility actions.
 - Kill Counts has route-aware colouring, a strong Win+/route separator, and an optional pinned **TOTALS** row for the active cinder filter.
 - **Survival Breakdown** includes an **ALL** aggregate option plus visible **Deaths** / **Floors Completed** mode buttons and logical Back navigation.
@@ -35,7 +42,7 @@ scripts\build_windows.ps1
 Expected output:
 
 ```text
-dist\TinyRoguesTracker-v0.4.5.exe
+dist\TinyRoguesTracker-v0.4.6.exe
 ```
 
 ## Installer
@@ -84,7 +91,7 @@ On Windows it:
 4. Builds the PyInstaller executable.
 5. Builds an Inno Setup installer.
 6. Uploads artifacts.
-7. Publishes artifacts for tagged releases like `v0.4.5`.
+7. Publishes artifacts for tagged releases like `v0.4.6`.
 
 ## Development validation
 

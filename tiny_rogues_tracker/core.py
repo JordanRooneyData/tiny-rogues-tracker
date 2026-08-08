@@ -79,12 +79,16 @@ class SfmTableState:
     state: str = "normal"
     selected_rows: set[int] = field(default_factory=set)
     selected_cols: set[int] = field(default_factory=set)
+    row_anchor: int | None = None
+    col_anchor: int | None = None
     message: str = "SFM inactive. Press SFM to choose rows and columns for a compact screenshot table."
 
-    def press(self) -> "SfmTableState":
+    def press(self, auto_select_first_col: bool = True) -> "SfmTableState":
         if self.state == "normal":
             self.state = "selection"
-            self.selected_cols.add(0)
+            if auto_select_first_col:
+                self.selected_cols.add(0)
+                self.col_anchor = 0
             self.message = "SFM SELECTION HAS BEEN ACTIVATED. Click row and column headers; selected intersections will be highlighted."
         elif self.state == "selection":
             if not self.selected_rows or not self.selected_cols:
@@ -93,21 +97,35 @@ class SfmTableState:
                 self.state = "compact"
                 self.message = "Compact screenshot mode is active. Press SFM again to restore the full table."
         else:
-            self.state = "normal"
-            self.selected_rows.clear()
-            self.selected_cols.clear()
-            self.message = "SFM inactive. Press SFM to choose rows and columns for a compact screenshot table."
+            self.exit_to_normal()
         return self
 
-    def toggle_row(self, row: int) -> None:
-        if self.state != "selection":
-            return
-        self.selected_rows.symmetric_difference_update({row})
+    def exit_to_normal(self) -> "SfmTableState":
+        self.state = "normal"
+        self.selected_rows.clear()
+        self.selected_cols.clear()
+        self.row_anchor = None
+        self.col_anchor = None
+        self.message = "SFM inactive. Press SFM to choose rows and columns for a compact screenshot table."
+        return self
 
-    def toggle_col(self, col: int) -> None:
+    def _toggle_or_range(self, selected: set[int], value: int, anchor: int | None, shift: bool) -> int:
+        if shift and anchor is not None:
+            lo, hi = sorted((anchor, value))
+            selected.update(range(lo, hi + 1))
+            return anchor
+        selected.symmetric_difference_update({value})
+        return value
+
+    def toggle_row(self, row: int, shift: bool = False) -> None:
         if self.state != "selection":
             return
-        self.selected_cols.symmetric_difference_update({col})
+        self.row_anchor = self._toggle_or_range(self.selected_rows, row, self.row_anchor, shift)
+
+    def toggle_col(self, col: int, shift: bool = False) -> None:
+        if self.state != "selection":
+            return
+        self.col_anchor = self._toggle_or_range(self.selected_cols, col, self.col_anchor, shift)
 
     def highlighted_cells(self) -> set[tuple[int, int]]:
         if self.state != "selection":
@@ -233,6 +251,13 @@ class MatrixModel:
     cells: dict[tuple[int, str], MatrixCell]
     mode: str = "Deaths"
 
+@dataclass
+class MatrixPresentation:
+    headers: list[str]
+    row_labels: list[str]
+    values: list[list[int | str]]
+    fixed_bottom_rows: int = 2
+
 DEATHS_MODE = "Deaths"
 FLOORS_COMPLETED_MODE = "Floors Completed"
 DEATHS_MILESTONES = [str(i) for i in range(1, 10)] + ["10 (Death's Castle)", "11 (Dragon Floor)", "12 (Deity Floor)", "Win+"]
@@ -345,6 +370,38 @@ class TrackerModel:
                     cells[(run.cinder, label)].count += 1
                     cells[(run.cinder, label)].route_boss = run.route_boss
         return MatrixModel(name, milestones, cinders, cells, mode)
+
+def matrix_format_rate(numerator: int, denominator: int) -> str:
+    if denominator <= 0:
+        return "—"
+    return f"{(numerator / denominator) * 100:.1f}%"
+
+def matrix_presentation(matrix: MatrixModel, columns_reversed: bool = False, rows_reversed: bool = False) -> MatrixPresentation:
+    cinders = list(matrix.cinders)
+    if columns_reversed:
+        cinders = list(reversed(cinders))
+    body_labels = list(matrix.milestones)
+    if rows_reversed:
+        body_labels = list(reversed(body_labels))
+    headers = [f"C{c}" for c in cinders] + ["Totals"]
+    values: list[list[int | str]] = []
+    for label in body_labels:
+        counts = [matrix.cells[(c, label)].count for c in cinders]
+        values.append(counts + [sum(counts)])
+    death_rates: list[int | str] = []
+    win_rates: list[int | str] = []
+    for c in cinders:
+        attempts = sum(matrix.cells[(c, label)].count for label in matrix.milestones)
+        death_clears = matrix.cells[(c, "10 (Death's Castle)")].count if "10 (Death's Castle)" in matrix.milestones else 0
+        win_plus = matrix.cells[(c, "Win+")].count if "Win+" in matrix.milestones else 0
+        death_rates.append(matrix_format_rate(death_clears, attempts))
+        win_rates.append(matrix_format_rate(win_plus, attempts))
+    total_attempts = sum(sum(matrix.cells[(c, label)].count for label in matrix.milestones) for c in cinders)
+    total_deaths = sum(matrix.cells[(c, "10 (Death's Castle)")].count for c in cinders) if "10 (Death's Castle)" in matrix.milestones else 0
+    total_win = sum(matrix.cells[(c, "Win+")].count for c in cinders) if "Win+" in matrix.milestones else 0
+    row_labels = body_labels + ["Death Kill Rate", "Win+ Rate"]
+    values.extend([death_rates + [matrix_format_rate(total_deaths, total_attempts)], win_rates + [matrix_format_rate(total_win, total_attempts)]])
+    return MatrixPresentation(headers, row_labels, values, fixed_bottom_rows=2)
 
 class SortState:
     """Stable table sorting: descending -> ascending -> default."""
