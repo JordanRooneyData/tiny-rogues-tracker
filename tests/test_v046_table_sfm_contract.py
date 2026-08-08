@@ -24,7 +24,7 @@ def run(cls, cinder, floor, bosses):
 
 
 def test_version_is_046():
-    assert __version__ == "0.4.6.2"
+    assert __version__ == "0.4.7"
 
 
 def test_survival_breakdown_totals_column_and_rate_rows_from_current_table_data():
@@ -38,12 +38,14 @@ def test_survival_breakdown_totals_column_and_rate_rows_from_current_table_data(
     assert pres.headers[-1] == "Totals"
     win_row = pres.row_labels.index("Win+")
     death_row = pres.row_labels.index("10 (Death's Castle)")
+    dragon_row = pres.row_labels.index("11 (Dragon Floor)")
     assert pres.values[win_row][-1] == 1
-    assert pres.values[death_row][-1] == 1
+    assert pres.values[death_row][-1] == 0
+    assert pres.values[dragon_row][-1] == 1
     assert pres.row_labels[-2:] == ["Death Kill Rate", "Win+ Rate"]
     c1 = pres.headers.index("C1")
     c0 = pres.headers.index("C0")
-    assert pres.values[-2][c1] == "50.0%"
+    assert pres.values[-2][c1] == "100.0%"
     assert pres.values[-1][c1] == "50.0%"
     assert pres.values[-2][c0] == "—"
 
@@ -105,8 +107,10 @@ def test_geometry_sorting_and_restoration_are_centralised_without_content_divide
     assert "default_widths" in gui and "default_heights" in gui
     assert "compact_widths" in gui and "compact_heights" in gui
     assert "def _restore_table_geometry" in gui
-    assert "resizeColumnsToContents()" not in gui
-    assert "resizeRowsToContents()" not in gui
+    assert "resizeColumnsToContents()" in gui
+    assert "resizeRowsToContents()" in gui
+    assert "def _fit_compact_geometry" in gui
+    assert "def _apply_survival_geometry" in gui
     assert "ColumnDividerDelegate" in gui
     assert "setText(item.text()" not in gui
     assert "divider_delegate.divider_column" in gui

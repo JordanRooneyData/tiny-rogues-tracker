@@ -112,9 +112,16 @@ class SfmTableState:
     def _toggle_or_range(self, selected: set[int], value: int, anchor: int | None, shift: bool) -> int:
         if shift and anchor is not None:
             lo, hi = sorted((anchor, value))
-            selected.update(range(lo, hi + 1))
+            header_range = set(range(lo, hi + 1))
+            if anchor in selected:
+                selected.update(header_range)
+            else:
+                selected.difference_update(header_range)
             return anchor
-        selected.symmetric_difference_update({value})
+        if value in selected:
+            selected.remove(value)
+        else:
+            selected.add(value)
         return value
 
     def toggle_row(self, row: int, shift: bool = False) -> None:
@@ -388,19 +395,22 @@ def matrix_presentation(matrix: MatrixModel, columns_reversed: bool = False, row
     for label in body_labels:
         counts = [matrix.cells[(c, label)].count for c in cinders]
         values.append(counts + [sum(counts)])
+    if matrix.mode != DEATHS_MODE:
+        return MatrixPresentation(headers, body_labels, values, fixed_bottom_rows=0)
+    death_rate_labels = ["11 (Dragon Floor)", "12 (Deity Floor)", "Win+"]
     death_rates: list[int | str] = []
     win_rates: list[int | str] = []
     for c in cinders:
         attempts = sum(matrix.cells[(c, label)].count for label in matrix.milestones)
-        death_clears = matrix.cells[(c, "10 (Death's Castle)")].count if "10 (Death's Castle)" in matrix.milestones else 0
+        ended_after_death = sum(matrix.cells[(c, label)].count for label in death_rate_labels if label in matrix.milestones)
         win_plus = matrix.cells[(c, "Win+")].count if "Win+" in matrix.milestones else 0
-        death_rates.append(matrix_format_rate(death_clears, attempts))
+        death_rates.append(matrix_format_rate(ended_after_death, attempts))
         win_rates.append(matrix_format_rate(win_plus, attempts))
     total_attempts = sum(sum(matrix.cells[(c, label)].count for label in matrix.milestones) for c in cinders)
-    total_deaths = sum(matrix.cells[(c, "10 (Death's Castle)")].count for c in cinders) if "10 (Death's Castle)" in matrix.milestones else 0
+    total_after_death = sum(matrix.cells[(c, label)].count for c in cinders for label in death_rate_labels if label in matrix.milestones)
     total_win = sum(matrix.cells[(c, "Win+")].count for c in cinders) if "Win+" in matrix.milestones else 0
     row_labels = body_labels + ["Death Kill Rate", "Win+ Rate"]
-    values.extend([death_rates + [matrix_format_rate(total_deaths, total_attempts)], win_rates + [matrix_format_rate(total_win, total_attempts)]])
+    values.extend([death_rates + [matrix_format_rate(total_after_death, total_attempts)], win_rates + [matrix_format_rate(total_win, total_attempts)]])
     return MatrixPresentation(headers, row_labels, values, fixed_bottom_rows=2)
 
 class SortState:
@@ -489,7 +499,13 @@ def death_floor_number(run: RunMetric) -> int:
     """Adjusted recorded run-ending floor, independent of ordinary boss kills."""
     if run.stored_floor is None:
         return 1
-    return max(1, min(12, int(run.stored_floor) + 1))
+    floor = max(1, min(12, int(run.stored_floor) + 1))
+    if floor == 10 and run.is_death and not run.is_win_plus:
+        # Tiny Rogues can store a Death kill as an end on Death's Castle when the
+        # next-floor progression gate has not yet opened; display that as the run
+        # ending after floor 10 rather than as an ordinary floor-10 death.
+        return 11
+    return floor
 
 def floor_label(floor: int) -> str:
     if floor == 10:

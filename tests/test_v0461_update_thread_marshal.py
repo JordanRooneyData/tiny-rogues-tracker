@@ -7,7 +7,7 @@ GUI = ROOT / "tiny_rogues_tracker" / "gui.py"
 
 
 def test_version_is_0461_hotfix():
-    assert __version__ == "0.4.6.2"
+    assert __version__ == "0.4.7"
 
 
 def test_startup_update_result_is_marshalled_back_to_gui_thread():
