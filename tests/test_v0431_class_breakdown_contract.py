@@ -28,7 +28,7 @@ def run(floor_reached, bosses=None, cinder=0, cls=0):
 
 
 def test_version_is_0431():
-    assert __version__ == "0.4.6.1"
+    assert __version__ == "0.4.6.2"
 
 
 def test_sfm_mini_table_numeric_sort_cycle_and_selection_sets_are_independent():

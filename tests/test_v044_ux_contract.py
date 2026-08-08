@@ -7,7 +7,7 @@ GUI = ROOT / "tiny_rogues_tracker" / "gui.py"
 
 
 def test_version_is_044():
-    assert __version__ == "0.4.6.1"
+    assert __version__ == "0.4.6.2"
 
 
 def test_main_menu_has_primary_and_utility_action_sections_with_lower_priority_utility_style():
