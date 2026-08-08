@@ -26,7 +26,7 @@ def run(cls, cinder, bosses):
 
 
 def test_version_is_045_and_survival_breakdown_label():
-    assert __version__ == "0.4.8"
+    assert __version__ == "0.4.9"
     assert VIEW_SURVIVAL_BREAKDOWN == "Survival Breakdown"
 
 
@@ -62,7 +62,8 @@ def test_kill_counts_totals_toggle_pinned_and_separator_contract():
     assert "Show Totals" in counts and "Hide Totals" in counts
     assert "display_rows = ([completion_totals(rows)] if self.show_totals else []) + rows" in counts
     assert "table.pinned_rows = 1 if self.show_totals else 0" in counts
-    assert "table.logical_separators = [LogicalSeparator(left=(\"Death Kills\", \"Win+ Kills\"), right=(\"Eden Kills\", \"Amon Kills\", \"Primal Death Kills\"))]" in counts
+    assert "table.set_logical_column_ids([\"class\", \"death_kills\", \"win_plus_kills\", \"eden_kills\", \"amon_kills\", \"primal_death_kills\"])" in counts
+    assert "LogicalSeparator(left_ids=(\"death_kills\", \"win_plus_kills\"), right_ids=(\"eden_kills\", \"amon_kills\", \"primal_death_kills\"))" in counts
     assert "TOTALS" in (ROOT / "tiny_rogues_tracker" / "core.py").read_text(encoding="utf-8")
     assert "ColumnDividerDelegate" in gui
     assert "drawLine(option.rect.topRight(), option.rect.bottomRight())" in gui

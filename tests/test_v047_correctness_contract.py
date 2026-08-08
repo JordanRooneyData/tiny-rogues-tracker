@@ -25,7 +25,7 @@ def run(cls=0, cinder=0, floor=0, bosses=None):
 
 
 def test_version_is_047():
-    assert __version__ == "0.4.8"
+    assert __version__ == "0.4.9"
 
 
 def test_death_and_win_rates_use_displayed_deaths_mode_endpoints_only():
@@ -90,15 +90,17 @@ def test_v047_gui_source_contracts_for_header_menu_corner_controls_and_geometry(
     gui = GUI.read_text(encoding="utf-8")
     assert "def _clear_sfm_header_marks" in gui
     assert "setCornerWidget" in gui
-    assert "reverse_cols = QPushButton(\"↔\")" in gui
-    assert "reverse_rows = QPushButton(\"↕\")" in gui
+    assert "Reverse default column order" in gui
+    assert "Reverse default row order" in gui
+    assert "reverse_cols = QPushButton(\"↔\")" not in gui
+    assert "reverse_rows = QPushButton(\"↕\")" not in gui
     matrix = gui.split("def show_matrix", 1)[1].split("def _check_updates", 1)[0]
     assert "switch.addWidget(reverse_cols)" not in matrix
-    assert "set_corner_controls" in matrix
+    assert "set_corner_controls" not in matrix
     assert "def _fit_compact_geometry" in gui
     assert "def _apply_survival_geometry" in gui
     assert "col < 0 or col >= self.columnCount()" in gui
-    assert "self._cycle_sort_col(col)" in gui
+    assert "self._cycle_sort_col(column)" in gui
     collapse = gui.split("def _collapse_to_sfm_compact", 1)[1].split("def _apply_separator", 1)[0]
     assert "horizontalHeaderItem(c)" in collapse
     assert "self.base_headers[c] for c in cols" not in collapse

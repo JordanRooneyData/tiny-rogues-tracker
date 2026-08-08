@@ -25,7 +25,7 @@ def save_with_runs(runs, streaks_len=36):
 
 
 def test_version_is_0431_and_views_are_renamed_in_gui_source():
-    assert __version__ == "0.4.8"
+    assert __version__ == "0.4.9"
     gui = (ROOT / "tiny_rogues_tracker" / "gui.py").read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     for text in [gui, readme]:
@@ -129,4 +129,4 @@ def test_removed_columns_and_zero_fade_contracts_in_gui_source():
     assert '"Top Floor Beaten"' in gui
     assert "PALETTE['zero']" in gui
     assert "zero_value" in gui
-    assert "Sort descending" in gui and "Sort ascending" in gui and "Restore default order" in gui
+    assert "Reverse default column order" in gui and "Reverse default row order" in gui

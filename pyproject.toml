@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tiny-rogues-tracker"
-version = "0.4.8"
+version = "0.4.9"
 description = "Read-only Tiny Rogues save tracker with PySide6 desktop GUI"
 requires-python = ">=3.10"
 dependencies = ["PySide6>=6.6", "packaging>=23.0"]

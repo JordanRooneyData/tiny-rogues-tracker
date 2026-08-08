@@ -28,7 +28,7 @@ def run(floor_reached, bosses=None, cinder=0, cls=0):
 
 
 def test_version_is_0431():
-    assert __version__ == "0.4.8"
+    assert __version__ == "0.4.9"
 
 
 def test_sfm_mini_table_numeric_sort_cycle_and_selection_sets_are_independent():
@@ -56,7 +56,8 @@ def test_gui_sfm_compact_sorting_and_restore_contract_source():
     assert "self.compact_snapshot" in gui
     assert "self.compact_headers" in gui
     assert "source = self.compact_snapshot if compact else self.default_snapshot" in gui
-    assert "headers = self.compact_headers if compact else self.base_headers" in gui
+    assert "headers = list(self.compact_headers if compact else self.base_headers)" in gui
+    assert "column_ids = list(self.compact_column_ids if compact else self.default_column_ids)" in gui
     assert "self.compact_snapshot = []" in gui
     assert "self.sort_direction = 0" in gui
 

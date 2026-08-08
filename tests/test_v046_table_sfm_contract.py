@@ -24,7 +24,7 @@ def run(cls, cinder, floor, bosses):
 
 
 def test_version_is_046():
-    assert __version__ == "0.4.8"
+    assert __version__ == "0.4.9"
 
 
 def test_survival_breakdown_totals_column_and_rate_rows_from_current_table_data():
@@ -94,10 +94,10 @@ def test_survival_mini_table_context_and_reverse_controls_source_contract():
     matrix = gui.split("def show_matrix", 1)[1].split("def _check_updates", 1)[0]
     assert "Class selected:" in matrix
     assert "Mode:" in matrix
-    assert "reverse_cols = QPushButton(\"↔\")" in matrix
-    assert "reverse_rows = QPushButton(\"↕\")" in matrix
-    assert "Reverse cinder column order" in matrix
-    assert "fixed rate rows stay at the bottom" in matrix
+    assert "Reverse default column order" in gui
+    assert "Reverse default row order" in gui
+    assert "reverse_cols = QPushButton(\"↔\")" not in matrix
+    assert "reverse_rows = QPushButton(\"↕\")" not in matrix
     assert "table.auto_select_first_col = False" in matrix
     assert "table.fixed_bottom_rows = presentation.fixed_bottom_rows" in matrix
 
@@ -131,5 +131,5 @@ def test_kill_counts_cinder_anchor_and_divider_border_contract():
     assert "value == self.cinder_anchor" in counts
     assert "setProperty(\"sfmAnchor\", True)" in counts
     assert "Cinder range anchor" in counts
-    assert "table.logical_separators = [LogicalSeparator(left=(\"Death Kills\", \"Win+ Kills\"), right=(\"Eden Kills\", \"Amon Kills\", \"Primal Death Kills\"))]" in counts
+    assert "LogicalSeparator(left_ids=(\"death_kills\", \"win_plus_kills\"), right_ids=(\"eden_kills\", \"amon_kills\", \"primal_death_kills\"))" in counts
     assert "divider_columns" in gui

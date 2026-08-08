@@ -60,34 +60,60 @@ except Exception:  # pragma: no cover
 
 @dataclass(frozen=True)
 class LogicalSeparator:
-    """A separator boundary resolved from visible logical header names."""
+    """A separator boundary resolved from stable logical column IDs, with header fallback."""
     before: str | None = None
     after: str | None = None
     left: tuple[str, ...] = ()
     right: tuple[str, ...] = ()
+    before_id: str | None = None
+    after_id: str | None = None
+    left_ids: tuple[str, ...] = ()
+    right_ids: tuple[str, ...] = ()
 
 
 def _header_matches(header: str, pattern: str) -> bool:
     clean = header.replace(" ▲", "").replace(" ▼", "")
-    return clean == pattern or clean.endswith(" " + pattern)
+    # Strip only known cinder-filter prefixes. Avoid arbitrary suffix matching so
+    # "Primal Death Kills" never masquerades as ordinary "Death Kills".
+    parts = clean.split(" ", 1)
+    if len(parts) == 2 and (parts[0] == "ALL" or parts[0].startswith("C")):
+        clean = parts[1]
+    return clean == pattern
 
 
-def resolve_logical_separators(headers: list[str], separators: list[LogicalSeparator]) -> set[int]:
+def _matches_value(value: str, pattern: str) -> bool:
+    return value == pattern or _header_matches(value, pattern)
+
+
+def resolve_logical_separators(headers: list[str], separators: list[LogicalSeparator], column_ids: list[str] | None = None) -> set[int]:
     """Return visible column indexes that should draw a right-edge divider."""
     clean = [h.replace(" ▲", "").replace(" ▼", "") for h in headers]
+    ids = column_ids if column_ids and len(column_ids) == len(headers) else clean
     dividers: set[int] = set()
     for sep in separators:
-        if sep.before:
-            idx = next((i for i, h in enumerate(clean) if _header_matches(h, sep.before)), None)
+        before_key = sep.before_id or sep.before
+        after_key = sep.after_id or sep.after
+        left_keys = sep.left_ids or sep.left
+        right_keys = sep.right_ids or sep.right
+        if before_key:
+            idx = next((i for i, key in enumerate(ids) if _matches_value(key, before_key)), None)
+            if idx is None and sep.before:
+                idx = next((i for i, h in enumerate(clean) if _header_matches(h, sep.before)), None)
             if idx is not None and idx > 0:
                 dividers.add(idx - 1)
-        if sep.after:
-            idx = next((i for i, h in enumerate(clean) if _header_matches(h, sep.after)), None)
+        if after_key:
+            idx = next((i for i, key in enumerate(ids) if _matches_value(key, after_key)), None)
+            if idx is None and sep.after:
+                idx = next((i for i, h in enumerate(clean) if _header_matches(h, sep.after)), None)
             if idx is not None and idx < len(clean) - 1:
                 dividers.add(idx)
-        if sep.left and sep.right:
-            left_indices = [i for i, h in enumerate(clean) if any(_header_matches(h, p) for p in sep.left)]
-            right_indices = [i for i, h in enumerate(clean) if any(_header_matches(h, p) for p in sep.right)]
+        if left_keys and right_keys:
+            left_indices = [i for i, key in enumerate(ids) if any(_matches_value(key, p) for p in left_keys)]
+            right_indices = [i for i, key in enumerate(ids) if any(_matches_value(key, p) for p in right_keys)]
+            if not left_indices and sep.left:
+                left_indices = [i for i, h in enumerate(clean) if any(_header_matches(h, p) for p in sep.left)]
+            if not right_indices and sep.right:
+                right_indices = [i for i, h in enumerate(clean) if any(_header_matches(h, p) for p in sep.right)]
             for left in left_indices:
                 for right in right_indices:
                     if abs(left - right) == 1:
@@ -95,10 +121,11 @@ def resolve_logical_separators(headers: list[str], separators: list[LogicalSepar
     return dividers
 
 
-def column_order(headers: list[str], reverse: bool, leading: tuple[str, ...] = (), trailing: tuple[str, ...] = ()) -> list[int]:
+def column_order(headers: list[str], reverse: bool, leading: tuple[str, ...] = (), trailing: tuple[str, ...] = (), column_ids: list[str] | None = None) -> list[int]:
     """Reverse unprotected logical columns while keeping declared leading/trailing headers pinned."""
-    protected_leading = [i for i, h in enumerate(headers) if any(_header_matches(h, p) for p in leading)]
-    protected_trailing = [i for i, h in enumerate(headers) if any(_header_matches(h, p) for p in trailing)]
+    keys = column_ids if column_ids and len(column_ids) == len(headers) else headers
+    protected_leading = [i for i, key in enumerate(keys) if any(_matches_value(key, p) for p in leading)]
+    protected_trailing = [i for i, key in enumerate(keys) if any(_matches_value(key, p) for p in trailing)]
     protected = set(protected_leading + protected_trailing)
     middle = [i for i in range(len(headers)) if i not in protected]
     if reverse:
@@ -165,12 +192,15 @@ class SortableTable(QTableWidget):
         self.sort_column: int | None = None
         self.sort_direction = 0  # 0 default, 1 descending, 2 ascending
         self.base_headers: list[str] = []
+        self.default_column_ids: list[str] = []
+        self.current_column_ids: list[str] = []
         self.default_snapshot: list[list[QTableWidgetItem]] = []
         self.default_vertical_headers: list[str] = []
         self.default_widths: list[int] = []
         self.default_heights: list[int] = []
         self.compact_snapshot: list[list[QTableWidgetItem]] = []
         self.compact_headers: list[str] = []
+        self.compact_column_ids: list[str] = []
         self.compact_vertical_headers: list[str] = []
         self.compact_widths: list[int] = []
         self.compact_heights: list[int] = []
@@ -197,10 +227,14 @@ class SortableTable(QTableWidget):
         self.setSortingEnabled(False)
         self.setHorizontalHeader(SfmHeaderView(Qt.Horizontal, self))
         self.setVerticalHeader(SfmHeaderView(Qt.Vertical, self))
+        self.horizontalHeader().setSectionsClickable(True)
+        self.verticalHeader().setSectionsClickable(True)
         self.horizontalHeader().sectionClicked.connect(self._header_clicked)
         self.verticalHeader().sectionClicked.connect(self._row_header_clicked)
         self.horizontalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
         self.horizontalHeader().customContextMenuRequested.connect(self._header_menu)
+        self.verticalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
+        self.verticalHeader().customContextMenuRequested.connect(self._row_header_menu)
         self.verticalHeader().setVisible(True)
         self.setSelectionMode(QTableWidget.NoSelection)
         self.setAlternatingRowColors(True)
@@ -214,6 +248,11 @@ class SortableTable(QTableWidget):
         if self.sfm_exit_button:
             self.sfm_exit_button.clicked.connect(self.exit_sfm_selection)
         self._sync_sfm_controls()
+
+    def set_logical_column_ids(self, column_ids: list[str]):
+        self.current_column_ids = list(column_ids)
+        if self.columnCount() == len(column_ids):
+            self.default_column_ids = list(column_ids)
 
     def set_compact_title_label(self, label, text: str, color: str | None = None):
         self.compact_title_label = label
@@ -255,6 +294,9 @@ class SortableTable(QTableWidget):
 
     def finalize_default_order(self):
         self.base_headers = [self.horizontalHeaderItem(c).text().replace(" ▲", "").replace(" ▼", "") for c in range(self.columnCount())]
+        if not self.default_column_ids or len(self.default_column_ids) != len(self.base_headers):
+            self.default_column_ids = [h.lower().replace("+", "plus").replace(" ", "_") for h in self.base_headers]
+        self.current_column_ids = list(self.default_column_ids)
         self.default_vertical_headers = [self.verticalHeaderItem(r).text() if self.verticalHeaderItem(r) else str(r + 1) for r in range(self.rowCount())]
         self.default_snapshot = []
         self.default_widths = [self.columnWidth(c) for c in range(self.columnCount())]
@@ -315,16 +357,32 @@ class SortableTable(QTableWidget):
             self._apply_sfm_highlights()
 
     def _header_menu(self, pos):
+        if self.sfm.state == "selection":
+            return
         if self.sfm.state not in ("normal", "compact"):
             return
         col = self.horizontalHeader().logicalIndexAt(pos)
         if col < 0 or col >= self.columnCount():
             return
         menu = QMenu(self)
-        action = QAction("Sort descending / Sort ascending / Restore default order", menu)
-        action.triggered.connect(lambda _=False: self._cycle_sort_col(col))
+        action = QAction("Reverse default column order", menu)
+        action.triggered.connect(lambda _=False: self.reverse_columns())
         menu.addAction(action)
         menu.exec(self.horizontalHeader().mapToGlobal(pos))
+
+    def _row_header_menu(self, pos):
+        if self.sfm.state == "selection":
+            return
+        if self.sfm.state not in ("normal", "compact"):
+            return
+        row = self.verticalHeader().logicalIndexAt(pos)
+        if row < 0 or row >= self.rowCount():
+            return
+        menu = QMenu(self)
+        action = QAction("Reverse default row order", menu)
+        action.triggered.connect(lambda _=False: self.reverse_rows())
+        menu.addAction(action)
+        menu.exec(self.verticalHeader().mapToGlobal(pos))
 
     def _explicit_sort(self, col, direction):
         if col is None or col < 0 or col >= self.columnCount():
@@ -346,7 +404,10 @@ class SortableTable(QTableWidget):
         compact = self.sfm.state == "compact"
         source = self.compact_snapshot if compact else self.default_snapshot
         vheaders = self.compact_vertical_headers if compact else self.default_vertical_headers
-        headers = self.compact_headers if compact else self.base_headers
+        headers = list(self.compact_headers if compact else self.base_headers)
+        column_ids = list(self.compact_column_ids if compact else self.default_column_ids)
+        if not column_ids or len(column_ids) != len(headers):
+            column_ids = [h.lower().replace("+", "plus").replace(" ", "_") for h in headers]
         widths = self.compact_widths if compact else self.default_widths
         bottom_start = max(self.pinned_rows, len(source) - self.fixed_bottom_rows) if not compact and self.fixed_bottom_rows else len(source)
         pinned = [(i, row, vheaders[i]) for i, row in enumerate(source[:self.pinned_rows])] if not compact else []
@@ -373,16 +434,17 @@ class SortableTable(QTableWidget):
         if self.row_order_reversed and self.sort_direction == 0:
             indexed = list(reversed(indexed))
         if self.column_order_reversed:
-            headers, widths, indexed, bottom, pinned = self._reverse_columns(headers, widths, indexed, bottom, pinned)
-        self._load_snapshot(pinned + indexed + bottom, headers, widths)
+            headers, widths, column_ids, indexed, bottom, pinned = self._reverse_columns(headers, widths, column_ids, indexed, bottom, pinned)
+        self._load_snapshot(pinned + indexed + bottom, headers, widths, column_ids)
         self._apply_header_indicators()
         self._apply_separators()
         self._apply_sfm_highlights()
 
-    def _load_snapshot(self, indexed, headers: list[str], widths: list[int]):
+    def _load_snapshot(self, indexed, headers: list[str], widths: list[int], column_ids: list[str] | None = None):
         self.clearContents()
         self.setColumnCount(len(headers))
         self.setHorizontalHeaderLabels(headers)
+        self.current_column_ids = list(column_ids or []) if column_ids and len(column_ids) == len(headers) else [self._clean_header_text(h).lower().replace("+", "plus").replace(" ", "_") for h in headers]
         self.setRowCount(len(indexed))
         self.setVerticalHeaderLabels([h.replace(" [SFM]", "") for _, _, h in indexed])
         for r, (_, row, _) in enumerate(indexed):
@@ -391,19 +453,21 @@ class SortableTable(QTableWidget):
         self._restore_table_geometry(widths, self.compact_heights if self.sfm.state == "compact" else self.default_heights)
         self._install_corner_controls()
 
-    def _reverse_columns(self, headers, widths, *groups):
+    def _reverse_columns(self, headers, widths, column_ids, *groups):
         order = column_order(
             headers,
             True,
             leading=tuple(self.protected_leading_headers),
             trailing=tuple(self.protected_trailing_headers),
+            column_ids=column_ids,
         )
         headers = [headers[i] for i in order]
         widths = [widths[i] for i in order]
+        column_ids = [column_ids[i] for i in order]
         out_groups = []
         for group in groups:
             out_groups.append([(i, [row[j] for j in order], vh) for i, row, vh in group])
-        return (headers, widths, *out_groups)
+        return (headers, widths, column_ids, *out_groups)
 
     def _restore_table_geometry(self, widths, heights):
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
@@ -416,10 +480,14 @@ class SortableTable(QTableWidget):
                 self.setRowHeight(r, height)
 
     def reverse_columns(self):
+        if self.sfm.state == "selection":
+            return
         self.column_order_reversed = not self.column_order_reversed
         self.apply_sort()
 
     def reverse_rows(self):
+        if self.sfm.state == "selection":
+            return
         self.row_order_reversed = not self.row_order_reversed
         self.apply_sort()
 
@@ -451,6 +519,7 @@ class SortableTable(QTableWidget):
             self.sort_direction = 0
             self.compact_snapshot = []
             self.compact_headers = []
+            self.compact_column_ids = []
             self.compact_vertical_headers = []
             self.compact_widths = []
             self.compact_heights = []
@@ -531,6 +600,8 @@ class SortableTable(QTableWidget):
         rows = sorted(self.sfm.selected_rows)
         cols = sorted(self.sfm.selected_cols)
         self.compact_headers = [self._clean_header_text(self.horizontalHeaderItem(c).text()) if self.horizontalHeaderItem(c) else str(c + 1) for c in cols]
+        source_ids = self.current_column_ids if len(self.current_column_ids) == self.columnCount() else [h.lower().replace("+", "plus").replace(" ", "_") for h in self.compact_headers]
+        self.compact_column_ids = [source_ids[c] for c in cols]
         self.compact_vertical_headers = [self.verticalHeaderItem(r).text().replace(" [SFM]", "") if self.verticalHeaderItem(r) else str(r + 1) for r in rows]
         self.compact_snapshot = [[self.item(r, c).clone() if self.item(r, c) else QTableWidgetItem("") for c in cols] for r in rows]
         self.compact_widths = [self.columnWidth(c) for c in cols]
@@ -543,6 +614,7 @@ class SortableTable(QTableWidget):
         self.clear()
         self.setRowCount(len(data)); self.setColumnCount(len(headers))
         self.setHorizontalHeaderLabels(headers); self.setVerticalHeaderLabels(vheaders)
+        self.current_column_ids = list(self.compact_column_ids)
         for r, row in enumerate(data):
             for c, item in enumerate(row):
                 self.setItem(r, c, item)
@@ -576,7 +648,8 @@ class SortableTable(QTableWidget):
 
     def _apply_separators(self):
         headers = [self._clean_header_text(self.horizontalHeaderItem(c).text()) if self.horizontalHeaderItem(c) else str(c + 1) for c in range(self.columnCount())]
-        dividers = resolve_logical_separators(headers, self.logical_separators)
+        column_ids = self.current_column_ids if len(self.current_column_ids) == len(headers) else None
+        dividers = resolve_logical_separators(headers, self.logical_separators, column_ids)
         self.divider_delegate.divider_columns = dividers
         self.horizontalHeader().set_divider_columns(dividers)
         self.viewport().update()
@@ -754,8 +827,9 @@ class TrackerApp(QMainWindow):
         table = self._table_page(VIEW_CINDER_HIGHSCORES, compact_title="🔥 CINDER HIGHSCORES 🔥", compact_color=PALETTE['hell_red'])
         headers = ["Class", "Death", "Win+", "Eden", "Amon", "Primal Death", "Top Floor Beaten"]
         table.setColumnCount(len(headers)); table.setHorizontalHeaderLabels(headers); self._style_route_headers(table); table.setRowCount(len(self.model.records))
-        table.protected_leading_headers = ["Class"]
-        table.logical_separators = [LogicalSeparator(before="Top Floor Beaten")]
+        table.set_logical_column_ids(["class", "best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "top_floor_rank"])
+        table.protected_leading_headers = ["class"]
+        table.logical_separators = [LogicalSeparator(before_id="top_floor_rank")]
         gold = self.model.character_record_highlights()
         cols = [None, "best_death", "best_win_plus", "best_eden", "best_amon", "best_primal_death", "top_floor_rank"]
         for r, rec in enumerate(self.model.records):
@@ -804,8 +878,9 @@ class TrackerApp(QMainWindow):
         prefix = self.current_selection.label
         headers = ["Class", f"{prefix} Death Kills", f"{prefix} Win+ Kills", f"{prefix} Eden Kills", f"{prefix} Amon Kills", f"{prefix} Primal Death Kills"]
         table.setColumnCount(len(headers)); table.setHorizontalHeaderLabels(headers); self._style_route_headers(table); table.setRowCount(len(display_rows))
-        table.protected_leading_headers = ["Class"]
-        table.logical_separators = [LogicalSeparator(left=("Death Kills", "Win+ Kills"), right=("Eden Kills", "Amon Kills", "Primal Death Kills"))]
+        table.set_logical_column_ids(["class", "death_kills", "win_plus_kills", "eden_kills", "amon_kills", "primal_death_kills"])
+        table.protected_leading_headers = ["class"]
+        table.logical_separators = [LogicalSeparator(left_ids=("death_kills", "win_plus_kills"), right_ids=("eden_kills", "amon_kills", "primal_death_kills"))]
         table.pinned_rows = 1 if self.show_totals else 0
         hi = self.model.completion_highlights(self.current_selection)
         fields = [None, "death_clears", "win_plus_clears", "eden_clears", "amon_clears", "primal_death_clears"]
@@ -876,10 +951,6 @@ class TrackerApp(QMainWindow):
         table.auto_select_first_col = False
         layout = table.parentWidget().layout()
         switch = QHBoxLayout()
-        reverse_cols = QPushButton("↔"); reverse_cols.setToolTip("Reverse cinder column order")
-        reverse_rows = QPushButton("↕"); reverse_rows.setToolTip("Reverse Survival Breakdown row order; fixed rate rows stay at the bottom")
-        reverse_cols.clicked.connect(table.reverse_columns); reverse_rows.clicked.connect(table.reverse_rows)
-        table.set_corner_controls(reverse_cols, reverse_rows)
         deaths = QPushButton(DEATHS_MODE); deaths.setCheckable(True); deaths.setChecked(matrix.mode == DEATHS_MODE)
         floors = QPushButton(FLOORS_COMPLETED_MODE); floors.setCheckable(True); floors.setChecked(matrix.mode == FLOORS_COMPLETED_MODE)
         deaths.clicked.connect(lambda: self.show_matrix(cid, DEATHS_MODE))
@@ -891,8 +962,9 @@ class TrackerApp(QMainWindow):
         layout.insertWidget(4, context)
         presentation = matrix_presentation(matrix)
         table.setColumnCount(len(presentation.headers)); table.setHorizontalHeaderLabels(presentation.headers)
-        table.protected_trailing_headers = ["Totals"]
-        table.logical_separators = [LogicalSeparator(before="Totals")]
+        table.set_logical_column_ids(["total" if h == "Totals" else h.lower().replace("+", "plus") for h in presentation.headers])
+        table.protected_trailing_headers = ["total"]
+        table.logical_separators = [LogicalSeparator(before_id="total")]
         table.setRowCount(len(presentation.row_labels)); table.setVerticalHeaderLabels(presentation.row_labels)
         table.fixed_bottom_rows = presentation.fixed_bottom_rows
         hi = view3_frontier_highlights(matrix)
